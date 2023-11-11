@@ -86,7 +86,7 @@ module.exports.controller = (app, io, socket_list) => {
         helper.CheckParameterValid(res, reqObj, ["email", "password", "socket_id"], () => {
 
             var auth_token = helper.createRequestToken();
-            db.query("UPDATE `user_detail` SET `auth_token` = ? AND `modify_date` = NOW() WHERE `email` = ? AND  `password` = ? AND `user_type` = ? ", [auth_token, reqObj.email, reqObj.password, ut_admin], (err, result) => {
+            db.query("UPDATE `user_detail` SET `auth_token` = ? , `modify_date` = NOW() WHERE `email` = ? AND  `password` = ? AND `user_type` = ? ", [auth_token, reqObj.email, reqObj.password, ut_admin], (err, result) => {
                 if (err) {
                     helper.ThrowHtmlError(err, res);
                     return

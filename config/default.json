@@ -1,0 +1,9 @@
+{
+    "dbConfig": {
+        "user":"root",
+        "password":"",
+        "database":"taxi_app",
+        "timezone":"utc+5:30",
+        "charset":"utf8mb4"
+    }
+}

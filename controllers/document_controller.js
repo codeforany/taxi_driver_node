@@ -267,6 +267,8 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/admin/document_delete', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["doc_id"], () => {
 
@@ -285,6 +287,9 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/admin/document_update', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj = req.body;
+
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["doc_id", "document_name", "document_type"], () => {
 

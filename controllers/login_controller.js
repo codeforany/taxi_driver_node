@@ -632,7 +632,7 @@ module.exports.controller = (app, io, socket_list) => {
                                 var topIConName = "service/" + helper.fileNameGenerate(topIconExtension);
                                 var topIConNewPath = imageSavePath + topIConName;
 
-                                fs.rename(files.top_icon[0].path, iconNewPath, (err) => {
+                                fs.rename(files.top_icon[0].path, topIConNewPath, (err) => {
 
                                     if (err) {
                                         helper.ThrowHtmlError(err);
@@ -677,7 +677,7 @@ module.exports.controller = (app, io, socket_list) => {
         checkAccessToken(req.headers, res, (uObj) => {
 
 
-            db.query("SELECT `service_id`, `service_name`, `seat`, `color`, `icon`, `top_icon`, `gender`, `status`, `created_date`, `description` FROM `service_detail` WHERE `status` != 2 ", [], (err, result) => {
+            db.query("SELECT `service_id`, `service_name`, `seat`, `color`, (CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon`  ) ELSE '' END) AS `icon`,  (CASE WHEN `top_icon` != '' THEN CONCAT('" + helper.ImagePath() +"', `top_icon`  ) ELSE '' END) AS `top_icon`, `gender`, `status`, `created_date`, `description` FROM `service_detail` WHERE `status` != 2 ", [], (err, result) => {
                 if (err) {
                     helper.ThrowHtmlError(err, res);
                     return
@@ -754,7 +754,7 @@ module.exports.controller = (app, io, socket_list) => {
                         topIConName = "service/" + helper.fileNameGenerate(topIconExtension);
                         var topIConNewPath = imageSavePath + topIConName;
                         updateSetValue = updateSetValue + ", `top_icon` = '" + topIConName + "' "
-                        fs.rename(files.top_icon[0].path, iconNewPath, (err) => {
+                        fs.rename(files.top_icon[0].path, topIConNewPath, (err) => {
 
                             if (err) {
                                 helper.ThrowHtmlError(err);
@@ -764,19 +764,33 @@ module.exports.controller = (app, io, socket_list) => {
 
                     }
 
-                    db.query("UPDATE `service_detail` SET `service_name`=?,`seat`=?,`color`=?,`gender`=?,`description`=? "+ updateSetValue +", `modify_date` = NOW() WHERE `service_id` = ? AND  `status` != 2 ;", [
+                    
+
+                    db.query("UPDATE `service_detail` SET `service_name`=?,`seat`=?,`color`=?,`gender`=?,`description`=? "+ updateSetValue +", `modify_date` = NOW() WHERE `service_id` = ? AND  `status` != 2 ;" , [
                         reqObj.service_name[0], reqObj.seat[0], reqObj.color[0], reqObj.gender[0], reqObj.description[0],
                         reqObj.service_id[0]
                     ], (err, result) => {
                         if (err) {
-                            helper.ThrowHtmlError(err);
+                            helper.ThrowHtmlError(err, res);
                             return;
                         }
 
                         if (result.affectedRows > 0) {
-                            res.json({
-                                "status": "1", "message": "service updated successfully"
+                            db.query(
+                                "SELECT `service_id`, `service_name`, `seat`, `color`, (CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon`  ) ELSE '' END) AS `icon`,  (CASE WHEN `top_icon` != '' THEN CONCAT('" + helper.ImagePath() +"', `top_icon`  ) ELSE '' END) AS `top_icon`, `gender`, `status`, `created_date`, `description` FROM `service_detail` WHERE `service_id` = ? ", [
+                                 reqObj.service_id[0]
+                            ], (err, result) => {
+
+                                    if (err) {
+                                        helper.ThrowHtmlError(err, res);
+                                        return;
+                                    }
+                                    res.json({
+                                        "status": "1", "message": "service updated successfully", "payload": result[0]
+                                    })
+
                             })
+                            
                         } else {
                             res.json({ "status": "0", "message": msg_fail })
                         }
@@ -792,7 +806,7 @@ module.exports.controller = (app, io, socket_list) => {
         checkAccessToken(req.headers, res, (uObj) => {
 
             helper.CheckParameterValid(res, reqObj, ["service_id"], () => {
-                db.query("UPDATE `service_detail` SET `status` = ?, `modify_date` = NOW() WHERE `service_id` = ? AND  `status` != 2 ;", [reqObj.service_id], (err, result) => {
+                db.query("UPDATE `service_detail` SET `status`=?, `modify_date` = NOW() WHERE `service_id` = ? AND  `status` != 2 ;", ["2", reqObj.service_id], (err, result) => {
                     if (err) {
                         helper.ThrowHtmlError(err, res);
                         return

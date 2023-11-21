@@ -3,6 +3,7 @@
         "user":"root",
         "password":"",
         "database":"taxi_app",
+        "multipleStatements": true,
         "timezone":"utc+5:30",
         "charset":"utf8mb4"
     }

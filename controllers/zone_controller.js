@@ -16,6 +16,14 @@ module.exports.controller = (app, io, socket_list) => {
     const msg_invalidUser = "invalid username";
     const msg_no_doc = "No Document"
 
+
+    var pr_base_charge = 5;
+    var pr_per_km_charge = 5;
+    var pr_per_minute_charge = 1;
+    var pr_booking_charge = 5;
+    var pr_minimum_fair = 10;
+    var pr_cancel_charge = 0;
+
     //App api
     app.post('/api/zone_list', (req, res) => {
         helper.Dlog(req.body);
@@ -100,6 +108,126 @@ module.exports.controller = (app, io, socket_list) => {
             })
         }, ut_admin)
     })
+
+
+    app.post('/api/admin/zone_edit', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
+        checkAccessToken(req.headers, res, (uObj) => {
+            helper.CheckParameterValid(res, reqObj, ["zone_id", "zone_name", "zone_json", "city", "service_id", "tax"], () => {
+
+                db.query("UPDATE `zone_list` AS `zl`" + 
+                "LEFT JOIN `price_detail` AS `pm` ON  `pm`.`zone_id` = `zl`.`zone_id` AND `pm`.`service_id` NOT IN ("+ reqObj.service_id +") AND `pm`.`status` = 1 " +
+                "LEFT JOIN `zone_document` AS `zd` ON  `zd`.`zone_id` = `zl`.`zone_id` AND `zd`.`service_id` NOT IN (" + reqObj.service_id + ") AND `sd`.`status` = 1 " +
+                "SET `zl`.`zone_name`  = ? , `zl`.`zone_json` = ?, `zl`.`tax` = ?, `zl`.`modify_date` = NOW(), `pm`.`modify_date` = NOW(), `pm`.`status` = 2, `zd`.`modify_date` = NOW(), `zd`.`status` = 2 WHERE `zl`.`zone_id` = ?;  " +
+                
+                "SELECT IFNULL( GROUP_CONCAT(DISTINCT `pm`.`service_id`),'') AS `service_id` FROM `zone_list` AS `zl` "+
+                "INNER JOIN `price_detail` AS `pm` ON `pm`.`zone_id` = `zl`.`zone_id` AND `pm`.`service_id` IN (" + reqObj,service_id + ") AND `pm`.`status` = 0 AND `zl`.`zone_id` = ?;" +
+                
+                "SELECT IFNULL( GROUP_CONCAT(DISTINCT `service_id`),'') AS `d_service_id` FROM `zone_document` WHERE `zone_id` = ? AND `status` = 2 ;" +
+                
+                "SELECT IFNULL( GROUP_CONCAT(DISTINCT `service_id`),'') AS `p_service_id` FROM `price_detail` WHERE `zone_id` = ? AND `status` = 2 ;", [ reqObj.zone_name, reqObj.zone_json, reqObj.tax,  reqObj.zone_id,
+                reqObj.zone_id, reqObj.zone_id, reqObj.zone_id ], (err, result) => {
+
+                    if(err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    }
+
+                    if(result[0].affectedRows > 0) {
+
+                        var insertPrice = []
+                        var insertDocument = []
+
+                        activeService =  result[1][0].service_id.split(",");
+                        myService = reqObj.service_id.split(",").filter((service_id) => !activeService.includes(service_id) );
+
+                        myService.forEach((service_id) => {
+
+                            var isFind = false;
+
+                            result[2][0].d_service_id.split(',').forEach((id) => {
+                                if(service_id == id) {
+                                    isFind = true;
+                                }
+                            })
+
+                            if(!isFind) {
+                                //no service document
+                                //insert
+                                insertDocument.push([reqObj.zone_id, service_id]);
+                            }
+
+                            var isFindPrice = false;
+
+                            result[3][0].p_service_id.split(',').forEach((id) => {
+                                if (service_id == id) {
+                                    isFindPrice = true;
+                                }
+                            })
+
+                            if (!isFindPrice) {
+                                //no service price
+                                //insert
+                                insertPrice.push([reqObj.zone_id, service_id, pr_base_charge, pr_per_km_charge, pr_per_minute_charge, pr_booking_charge, pr_minimum_fair, pr_cancel_charge ]);
+                            }
+
+                        });
+
+                        var sqlData = [];
+                        var sqlQuery = '';
+                        var dbChange = false;
+
+
+                        if(myService.length > 0) {
+                            sqlQuery += "UPDATE `zone_document` SET `status` = 1 WHERE `zone_id` = ? AND FIND_IN_SET( `service_id`, ? ) != 0; "
+                            sqlData.push( reqObj.zone_id, myService.toString() );
+                            dbChange = true;
+                        }
+
+                        if (myService.length > 0) {
+                            sqlQuery += "UPDATE `price_detail` AS `pm` "+
+                            "INNER JOIN ( SELECT MAX(`price_id`) AS `max_price_id` FROM `price_detail` WHERE `zone_id` = ? AND FIND_IN_SET( `service_id`, ? ) != 0 GROUP BY `zone_id`, `service_id` ) AS `pmm` ON `pm`.`price_id` = `pmm`.`max_price_id` " +
+                            "SET `pm`.`status` = 1 ; "
+                            sqlData.push(reqObj.zone_id, myService.toString());
+                            dbChange = true;
+                        }
+
+                        if(insertPrice.length > 0) {
+                            sqlQuery += 'INSERT INTO  `price_detail` (`zone_id`, `service_id`, `base_charge`, `per_km_charge`, `per_minute_charge`, `booking_charge`, `minimum_fair`, `cancel_charge` ) VALUES ?;';
+                            sqlData.push(insertPrice);
+                            dbChange = true;
+                        }
+
+                        if (insertDocument.length > 0) {
+                            sqlQuery += 'INSERT INTO  `zone_document` (`zone_id`, `service_id` ) VALUES ?;';
+                            sqlData.push(insertDocument);
+                            dbChange = true;
+                        }
+
+                        if(dbChange) {
+                            db.query( sqlQuery, sqlData, (err, zoneResult) => {
+                                if(err) {
+                                    helper.ThrowHtmlError(err, res);
+                                    return
+                                }
+
+                                res.json({ "status": "1", "message": "zone edited successfully" })
+                            } )
+                        }else{
+                            res.json({ "status": "1", "message": "zone edited successfully" })
+                        }
+
+                    }else{
+                        res.json({ "status": "0", "message": msg_fail })
+                    }
+                }  )
+
+
+            })
+        })
+        
+    } )
 
     app.post('/api/admin/zone_list', (req, res) => {
         helper.Dlog(req.body);

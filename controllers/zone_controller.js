@@ -49,7 +49,6 @@ module.exports.controller = (app, io, socket_list) => {
 
         }, ut_driver)
     })
-
     //Admin Api
     app.post('/api/admin/zone_add', (req, res) => {
         helper.Dlog(req.body);
@@ -108,8 +107,6 @@ module.exports.controller = (app, io, socket_list) => {
             })
         }, ut_admin)
     })
-
-
     app.post('/api/admin/zone_edit', (req, res) => {
         helper.Dlog(req.body)
         var reqObj = req.body;
@@ -228,7 +225,6 @@ module.exports.controller = (app, io, socket_list) => {
         }, ut_admin)
 
     })
-
     app.post('/api/admin/zone_detail', (req, res) => {
         helper.Dlog(req.body)
         var reqObj = req.body;
@@ -263,7 +259,6 @@ module.exports.controller = (app, io, socket_list) => {
         }, ut_admin)
 
     })
-
     app.post('/api/admin/zone_list', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
@@ -294,7 +289,6 @@ module.exports.controller = (app, io, socket_list) => {
 
         }, "4")
     })
-
     app.post('/api/admin/zone_price_list', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
@@ -329,7 +323,6 @@ module.exports.controller = (app, io, socket_list) => {
                 })
         }, "4")
     })
-
     app.post('/api/admin/zone_price_delete', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
@@ -354,14 +347,13 @@ module.exports.controller = (app, io, socket_list) => {
             })
         }, "4")
     })
-
     app.post('/api/admin/zone_price_edit', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
 
         checkAccessToken(req.headers, res, (uObj) => {
 
-            helper.CheckParameterValid(res, reqObj, ["price_id", "zone_id", "service_id", "base_charge", "per_km_charge", "per_min_charge", "booking_charge", "mini_fair", "mini_km", "cancel_charge", "tax"], () => {
+            helper.CheckParameterValid(res, reqObj, ["price_id", "zone_id", "service_id", "base_charge", "per_km_charge", "per_min_charge", "booking_charge", "mini_fair", "mini_km", "cancel_charge"], () => {
 
                 if (reqObj.price_id == "") {
                     //new price add
@@ -411,7 +403,6 @@ module.exports.controller = (app, io, socket_list) => {
             })
         }, "4")
     })
-
     app.post('/api/admin/zone_document_list', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
@@ -449,7 +440,6 @@ module.exports.controller = (app, io, socket_list) => {
                 })
         }, "4")
     })
-
     app.post('/api/admin/zone_service_list', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
@@ -482,8 +472,8 @@ module.exports.controller = (app, io, socket_list) => {
 
 
 function zoneNewPriceAdd(reqObj, res, message) {
-    db.query("INSERT INTO `price_detail`(`zone_id`, `service_id`, `base_charge`, `per_km_charge`, `per_min_charge`, `booking_charge`, `mini_fair`, `mini_km`, `cancel_charge`, `tax`) VALUES (?,?,?, ?,?,?, ?,?,?, ?);"
-        , [reqObj.zone_id, reqObj.service_id, reqObj.base_charge, reqObj.per_km_charge, reqObj.per_min_charge, reqObj.booking_charge, reqObj.mini_fair, reqObj.mini_km, reqObj.cancel_charge, reqObj.tax], (err, result) => {
+    db.query("INSERT INTO `price_detail`(`zone_id`, `service_id`, `base_charge`, `per_km_charge`, `per_min_charge`, `booking_charge`, `mini_fair`, `mini_km`, `cancel_charge`) VALUES (?,?,?, ?,?,?, ?,?,?);"
+        , [reqObj.zone_id, reqObj.service_id, reqObj.base_charge, reqObj.per_km_charge, reqObj.per_min_charge, reqObj.booking_charge, reqObj.mini_fair, reqObj.mini_km, reqObj.cancel_charge], (err, result) => {
 
             if (err) {
                 helper.ThrowHtmlError(err, res);

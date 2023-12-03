@@ -265,10 +265,9 @@ module.exports.controller = (app, io, socket_list) => {
 
         checkAccessToken(req.headers, res, (uObj) => {
 
-            db.query("SELECT `zd`.`zone_doc_id`, `pd`.`price_id`, `pd`.`service_id`, `zl`.`zone_id`, `zl`.`zone_name`, `zl`.`city`, `zl`.`tax`, `sd`.`service_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 1 THEN IFNULL (`d`.`name`, '' ) ELSE '' END) AS `document_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 2 THEN IFNULL (`d`.`name`, '' ) ELSE '' END) AS `car_document_name`, `pd`.`base_charge`, `pd`.`per_km_charge`, `pd`.`per_min_charge`, `pd`.`booking_charge`, `pd`.`mini_fair`, `pd`.`mini_km`, `pd`.`cancel_charge` FROM `zone_list` AS `zl` " +
-                "INNER JOIN  `zone_document` AS `zd` ON `zd`.`zone_id` = `zl`.`zone_id` AND `zd`.`status` = 1 AND `zl`.`status` != 2 " +
-
-                "INNER JOIN `price_detail` AS `pd` ON `pd`.`zone_id` = `zl`.`zone_id` AND `pd`.`status` = 1 " +
+            db.query("SELECT `zd`.`zone_doc_id`, `pd`.`price_id`, `pd`.`service_id`, `zl`.`zone_id`, `zl`.`zone_name`, `zl`.`city`, `zl`.`tax`, `sd`.`service_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 1 THEN `d`.`name` ELSE NULL END) AS `document_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 2 THEN `d`.`name` ELSE NULL END) AS `car_document_name`,`pd`.`base_charge`, `pd`.`per_km_charge`, `pd`.`per_min_charge`, `pd`.`booking_charge`, `pd`.`mini_fair`, `pd`.`mini_km`, `pd`.`cancel_charge` FROM `zone_list` AS `zl` " +
+                "INNER JOIN `zone_document` AS `zd` ON `zd`.`zone_id` = `zl`.`zone_id` AND `zd`.`status` = 1 AND `zl`.`status` != 2 " +
+                "INNER JOIN `price_detail` AS `pd` ON `pd`.`zone_id` = `zl`.`zone_id` AND `pd`.`service_id` = `zd`.`service_id` AND `pd`.`status` = 1 " +
                 "INNER JOIN  `service_detail` AS `sd` ON `sd`.`service_id` = `pd`.`service_id` AND `sd`.`status` = 1 " +
                 "LEFT JOIN `document` AS `d` ON `d`.`status` = 1 AND ( FIND_IN_SET( `d`.`doc_id`,  `zd`.`personal_doc` ) != 0  OR FIND_IN_SET( `d`.`doc_id`,  `zd`.`car_doc` ) != 0) GROUP BY `pd`.`price_id` ", [], (err, result) => {
 
@@ -386,7 +385,7 @@ module.exports.controller = (app, io, socket_list) => {
 
             helper.CheckParameterValid(res, reqObj, ["zone_doc_id", "personal_doc", "car_doc"], () => {
 
-                db.query(" UPDATE `zone_document` SET `personal_document` = ?, `car_document` = ?, `modify_date` = NOW() WHERE `zone_doc_id` = ? ", [reqObj.personal_doc, reqObj.car_doc, reqObj.zone_doc_id], (err, result) => {
+                db.query("UPDATE `zone_document` SET `personal_doc` = ?, `car_doc` = ?, `modify_date` = NOW() WHERE `zone_doc_id` = ? ", [reqObj.personal_doc, reqObj.car_doc, reqObj.zone_doc_id], (err, result) => {
 
                     if (err) {
                         helper.ThrowHtmlError(err, res);
@@ -394,7 +393,8 @@ module.exports.controller = (app, io, socket_list) => {
                     }
 
                     if (result.affectedRows > 0) {
-                        zoneNewPriceAdd(reqObj, res, "zone document edited successfully")
+                        res.json({ "status": "1", "message": "zone document edited successfully" })
+                        
                     } else {
                         res.json({ "status": "0", "message": msg_fail })
                     }
@@ -419,13 +419,13 @@ module.exports.controller = (app, io, socket_list) => {
                 condition += " AND `zd`.`service_id` = " + reqObj.service_id;
             }
 
-            db.query("SELECT `zd`.`zone_doc_id`, `zl`.`zone_id`, `zl`.`zone_name`, `zl`.`city`, `zl`.`modify_date`, `zl`.`tax`, `sd`.`service_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 1 THEN IFNULL (`d`.`name`, '' ) ELSE '' END) AS `document_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 2 THEN IFNULL (`d`.`name`, '' ) ELSE '' END) AS `car_document_name`, `pd`.`base_charge`, `pd`.`per_km_charge`  FROM `zone_list` AS `zl` " +
+            db.query("SELECT `zd`.`zone_doc_id`, `zl`.`zone_id`, `zl`.`zone_name`, `zl`.`city`, `zl`.`modify_date`, `zl`.`tax`, `sd`.`service_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 1 THEN `d`.`name` ELSE NULL END) AS `document_name`, GROUP_CONCAT( CASE WHEN `d`.`type` = 2 THEN `d`.`name` ELSE NULL END) AS `car_document_name`,GROUP_CONCAT( CASE WHEN `d`.`type` = 1 THEN  `d`.`doc_id` ELSE NULL END) AS `document_ids`, GROUP_CONCAT( CASE WHEN `d`.`type` = 2 THEN `d`.`doc_id` ELSE NULL END) AS `car_document_ids`, `pd`.`base_charge`, `pd`.`per_km_charge`  FROM `zone_list` AS `zl` " +
                 "INNER JOIN `zone_document` AS `zd` ON `zd`.`zone_id` = `zl`.`zone_id` AND `zd`.`status` = 1 AND `zl`.`status` != 2 " +
-                "INNER JOIN `price_detail` AS `pd` ON `pd`.`zone_id` = `zl`.`zone_id` AND `pd`.`status` = 1 " +
-                "INNER JOIN  `service_detail` AS `sd` ON `sd`.`service_id` = `pd`.`service_id` AND `sd`.`status` != 2 " +
+                "INNER JOIN `price_detail` AS `pd` ON `pd`.`zone_id` = `zl`.`zone_id` AND `pd`.`service_id` = `zd`.`service_id` AND `pd`.`status` = 1 " +
+                "INNER JOIN  `service_detail` AS `sd` ON `sd`.`service_id` = `zd`.`service_id` AND `sd`.`status` != 2 " +
                 "LEFT JOIN `document` AS `d` ON `d`.`status` = 1 AND ( FIND_IN_SET( `d`.`doc_id`,  `zd`.`personal_doc` ) != 0  OR FIND_IN_SET( `d`.`doc_id`,  `zd`.`car_doc` ) != 0) " +
-                "WHERE `zl`.`status` = 0 " + condition + "  GROUP BY `zd`.`zone_doc_id` ;" +
-                "SELECT `doc_id`, `name`, `type`, `created_date`, `modify_date` FROM `document` WHERE `status` = 0  ", [], (err, result) => {
+                "WHERE `zl`.`status` != 2 " + condition + "  GROUP BY `zd`.`zone_doc_id`  ;" +
+                "SELECT `doc_id`, `name`, `type`, `modify_date` FROM `document` WHERE `status` = 1  ", [], (err, result) => {
 
                     if (err) {
                         helper.ThrowHtmlError(err, res);

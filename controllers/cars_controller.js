@@ -243,11 +243,13 @@ module.exports.controller = (app, io, socket_list) => {
                     res.json({ "status": "1", "payload": [other_dict] })
                 }
             })
-        }, "2")
+        })
 
     })
 
     app.post('/api/model_list', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["brand_id"], () => {
                 db.query('SELECT `cm`.`model_id`, `cm`.`model_name`, `cm`.`seat` FROM `car_model` AS `cm` ' +
@@ -269,16 +271,18 @@ module.exports.controller = (app, io, socket_list) => {
                     })
             })
 
-        }, "2")
+        })
 
     })
 
     app.post('/api/series_list', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
 
             helper.CheckParameterValid(res, reqObj, ["model_id"], () => {
                 db.query('SELECT  `cs`.`series_id`, `cs`.`series_name` FROM `car_series` AS `cs` ' +
-                    'INNER JOIN `car_model` AS `cm` ON `cb`.`model_id` = `cs`.`model_id`  AND `cs`.`model_id` = ?  ' +
+                    'INNER JOIN `car_model` AS `cm` ON `cm`.`model_id` = `cs`.`model_id`  AND `cs`.`model_id` = ?  ' +
 
                     ' WHERE `cs`.`status` != ?', [reqObj.model_id, 2], (err, result) => {
                         if (err) {
@@ -301,7 +305,7 @@ module.exports.controller = (app, io, socket_list) => {
                         }
                     })
             })
-        }, "2")
+        })
 
     })
 
@@ -823,7 +827,7 @@ function car_brand_add(car_brand, callback) {
 }
 
 function car_model_add(brand_id, car_model, seat, callback) {
-    db.query('SELECT `model_id`, `brand_id`, `model_name`, `seat`, `status`, `created_date`, `modify_date` FROM `car_model` WHERE `brand_id` = ? AND `model_name` = ? AND `seat` = ?', [car_brand_id, car_model.toUpperCase(), seat], (err, result) => {
+    db.query('SELECT `model_id`, `brand_id`, `model_name`, `seat`, `status`, `created_date`, `modify_date` FROM `car_model` WHERE `brand_id` = ? AND `model_name` = ? AND `seat` = ?', [brand_id, car_model.toUpperCase(), seat], (err, result) => {
         if (err) {
             helper.ThrowHtmlError(err);
             return
@@ -843,7 +847,7 @@ function car_model_add(brand_id, car_model, seat, callback) {
             return callback(result[0].model_id);
         } else {
             //Add New 
-            db.query("INSERT INTO `car_model`( `brand_id`, `model_name`, `seat`, ) VALUES VALUES (?,?,?)", [brand_id, car_model.toUpperCase(), seat], (err, result) => {
+            db.query("INSERT INTO `car_model` ( `brand_id`, `model_name`, `seat` ) VALUES (?,?,?)", [brand_id, car_model.toUpperCase(), seat], (err, result) => {
                 if (err) {
                     helper.ThrowHtmlError(err);
                     return
@@ -855,7 +859,7 @@ function car_model_add(brand_id, car_model, seat, callback) {
 }
 
 function car_series_add(brand_id, model_id, car_series, callback) {
-    db.query('SELECT `series_id`, `brand_id`, `model_id`, `series_name`, `status`, `created_date`, `modify_date` FROM `car_series` WHERE `brand_id` = ? AND `model_id` = ? AND `series_name` = ?', [car_brand_id, model_id, car_series.toUpperCase()], (err, result) => {
+    db.query('SELECT `series_id`, `brand_id`, `model_id`, `series_name`, `status`, `created_date`, `modify_date` FROM `car_series` WHERE `brand_id` = ? AND `model_id` = ? AND `series_name` = ?', [brand_id, model_id, car_series.toUpperCase()], (err, result) => {
         if (err) {
             helper.ThrowHtmlError(err);
             return
@@ -877,7 +881,7 @@ function car_series_add(brand_id, model_id, car_series, callback) {
             return callback(result[0].series_id);
         } else {
             //Add New 
-            db.query("INSERT INTO `car_model`( `brand_id`, `model_name`, `seat`, ) VALUES VALUES (?,?,?)", [brand_id, car_model, seat], (err, result) => {
+            db.query("INSERT INTO `car_series`( `brand_id`, `model_id`, `series_name` ) VALUES (?,?,?)", [brand_id, model_id, car_series], (err, result) => {
                 if (err) {
                     helper.ThrowHtmlError(err);
                     return

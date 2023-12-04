@@ -423,8 +423,8 @@ module.exports.controller = (app, io, socket_list) => {
 
     app.post('/api/admin/series_list', (req, res) => {
         checkAccessToken(req.headers, res, (uObj) => {
-            db.query('SELECT `cm`.`model_id`, `cb`.`brand_name`, `cm`.`brand_id`, `cs`.`series_id`,  `cs`.`series_name`, `cs`.`status`, `cs`.`created_date`, `cs`.`modify_date` FROM `car_series` AS `cs` ' +
-                'INNER JOIN `car_model` AS `cm` ON `cb`.`model_id` = `cs`.`model_id` ' +
+            db.query('SELECT `cm`.`model_id`, `cm`.`model_name`, `cb`.`brand_name`, `cm`.`brand_id`, `cs`.`series_id`,  `cs`.`series_name`, `cs`.`status`, `cs`.`created_date`, `cs`.`modify_date` FROM `car_series` AS `cs` ' +
+                'INNER JOIN `car_model` AS `cm` ON `cm`.`model_id` = `cs`.`model_id` ' +
                 'INNER JOIN `car_brand` AS `cb` ON `cb`.`brand_id` = `cs`.`brand_id` ' +
                 ' WHERE `cs`.`status` != ?', [2], (err, result) => {
                     if (err) {
@@ -448,14 +448,16 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/admin/brand_approved', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["brand_id"], () => {
 
                 db.query('UPDATE `car_brand` AS `cb` ' +
 
-                    'SET `cb`.`modify_date` = NOW(), `cb`.`status` = (CASE WHEN `cm`.`status` = 0 THEN 1 ELSE 0 END) ' +
+                    'SET `cb`.`modify_date` = NOW(), `cb`.`status` = (CASE WHEN `cb`.`status` = 0 THEN 1 ELSE 0 END) ' +
 
-                    ' WHERE `cs`.`brand_id` = ? AND `cm`.`status` != ? ', [reqObj.brand_id, 2], (err, result) => {
+                    ' WHERE `cb`.`brand_id` = ? AND `cb`.`status` != ? ', [reqObj.brand_id, 2], (err, result) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
                         }
@@ -471,17 +473,23 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/admin/model_approved', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
+
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["model_id"], () => {
 
                 db.query('UPDATE `car_model` AS `cm` ' +
                     'INNER JOIN `car_brand` AS `cb` ON `cm`.`brand_id` = `cb`.`brand_id` ' +
-                    'SET `cb`.`modify_date` = NOW(), `cb`.`status` = (CASE WHEN `cm`.`status` = 0 THEN 1 ELSE 0 END), `cm`.`modify_date` = NOW(), `cm`.`status` = (CASE WHEN `cm`.`status` = 0 THEN 1 ELSE 0 END) ' +
+                    'SET `cb`.`modify_date` = NOW(), `cb`.`status` = (CASE WHEN `cb`.`status` = 0 THEN 1 ELSE 0 END), `cm`.`modify_date` = NOW(), `cm`.`status` = (CASE WHEN `cm`.`status` = 0 THEN 1 ELSE 0 END) ' +
 
                     ' WHERE `cm`.`model_id` = ? AND `cm`.`status` != ? ', [reqObj.model_id, 2], (err, result) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
+                            return
                         }
+
+                        helper.Dlog(result);
                         if (result.affectedRows > 0) {
                             res.json({ "status": "1", "message": msg_success })
                         } else {
@@ -494,13 +502,15 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/admin/series_approved', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["series_id"], () => {
 
                 db.query('UPDATE `car_series` AS `cs` ' +
                     'INNER JOIN `car_model` AS `cm` ON `cm`.`model_id` = `cs`.`model_id` ' +
                     'INNER JOIN `car_brand` AS `cb` ON `cs`.`brand_id` = `cb`.`brand_id` ' +
-                    'SET `cb`.`modify_date` = NOW(), `cb`.`status` = (CASE WHEN `cm`.`status` = 0 THEN 1 ELSE 0 END), `cm`.`modify_date` = NOW(), `cm`.`status` = (CASE WHEN `cm`.`status` = 0 THEN 1 ELSE 0 END), `cs`.`modify_date` = NOW(), `cs`.`status` = (CASE WHEN `cs`.`status` = 0 THEN 1 ELSE 0 END), ' +
+                    'SET `cb`.`modify_date` = NOW(), `cb`.`status` = (CASE WHEN `cb`.`status` = 0 THEN 1 ELSE 0 END), `cm`.`modify_date` = NOW(), `cm`.`status` = (CASE WHEN `cm`.`status` = 0 THEN 1 ELSE 0 END), `cs`.`modify_date` = NOW(), `cs`.`status` = (CASE WHEN `cs`.`status` = 0 THEN 1 ELSE 0 END) ' +
 
                     ' WHERE `cs`.`series_id` = ? AND `cs`.`status` != ? ', [reqObj.series_id, 2], (err, result) => {
                         if (err) {
@@ -519,16 +529,18 @@ module.exports.controller = (app, io, socket_list) => {
 
 
     app.post('/api/admin/brand_delete', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["brand_id"], () => {
 
                 db.query('UPDATE `car_brand` AS `cb` ' +
-                    'INNER JOIN `car_model` AS `cm` ON `cb`.`brand_id` = `cm`.`brand_id` ' +
-                    'INNER JOIN `car_series` AS `cs` ON `cs`.`model_id` = `cm`.`model_id` ' +
-                    'SET `cm`.`modify_date` = NOW(), `cm`.`status` = 2' +
-                    '`cb`.`modify_date` = NOW(), `cb`.`status` = 2 ' +
+                    'LEFT JOIN `car_model` AS `cm` ON `cb`.`brand_id` = `cm`.`brand_id` ' +
+                    'LEFT JOIN `car_series` AS `cs` ON `cs`.`model_id` = `cm`.`model_id` ' +
+                    'SET `cm`.`modify_date` = NOW(), `cm`.`status` = 2,' +
+                    '`cb`.`modify_date` = NOW(), `cb`.`status` = 2, ' +
                     '`cs`.`modify_date` = NOW(), `cs`.`status` = 2 ' +
-                    ' WHERE `cs`.`brand_id` = ? ', [reqObj.brand_id], (err, result) => {
+                    ' WHERE `cb`.`brand_id` = ? ', [reqObj.brand_id], (err, result) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
                         }
@@ -547,18 +559,20 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/admin/model_delete', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["model_id"], () => {
 
                 db.query('UPDATE `car_model` AS `cm` ' +
-                    'INNER JOIN `car_series` AS `cs` ON `cs`.`model_id` = `cm`.`model_id` ' +
-                    'SET `cm`.`modify_date` = NOW(), `cm`.`status` = 2' +
-
-                    '`cs`.`modify_date` = NOW(), `cs`.`status` = 2 ' +
+                    'LEFT JOIN `car_series` AS `cs` ON `cs`.`model_id` = `cm`.`model_id` ' +
+                    'SET `cm`.`modify_date` = NOW(), `cm`.`status` = 2, `cs`.`modify_date` = NOW(), `cs`.`status` = 2 ' +
                     ' WHERE `cm`.`model_id` = ? ', [reqObj.model_id], (err, result) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
+                            return;
                         }
+                        
                         if (result.affectedRows > 0) {
                             res.json({ "status": "1", "message": msg_success })
                         } else {
@@ -574,6 +588,8 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/admin/series_delete', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["series_id"], () => {
 

@@ -30,13 +30,13 @@ module.exports.controller = (app, io, socket_list) => {
 
                 if (result.length > 0) {
                     var auth_token = helper.createRequestToken();
-                    db.query("UPDATE `user_detail` SET `auth_token` = ? AND `modify_date` = NOW `mobile` = ? AND  `mobile_code` = ? AND `user_type` = ? ", [auth_token, reqObj.mobile, reqObj.mobile_code, reqObj.user_type], (err, uResult) => {
+                    db.query("UPDATE `user_detail` SET `auth_token` = ?, `modify_date` = NOW() WHERE `mobile` = ? AND  `mobile_code` = ? AND `user_type` = ? ", [auth_token, reqObj.mobile, reqObj.mobile_code, reqObj.user_type], (err, uResult) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
                             return
                         }
                         if (uResult.affectedRows > 0) {
-                            getUserDetailUserId(result[0][0].user_id, (uObj) => {
+                            getUserDetailUserId(result[0].user_id, (isDone,uObj) => {
                                 res.json({ "status": "1", "payload": uObj })
                             })
                         }
@@ -44,14 +44,17 @@ module.exports.controller = (app, io, socket_list) => {
                     })
 
                 } else {
-                    db.query("INSERT INTO `user_detail`(  `mobile`, `mobile_code`,`user_type`, `push_token`, `auth_token`, `device_source`) VALUES (?,?,?, ?,?,?)", [], (err, result) => {
+                    var auth_token = helper.createRequestToken();
+                    db.query("INSERT INTO `user_detail` (  `mobile`, `mobile_code`,`user_type`, `push_token`, `auth_token`, `device_source`) VALUES (?,?,?, ?,?,?)", [
+                        reqObj.mobile, reqObj.mobile_code, reqObj.user_type, reqObj.push_token, auth_token, reqObj.os_type,
+                    ], (err, result) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
                             return
                         }
 
                         if (result) {
-                            getUserDetailUserId(result.insertId, (uObj) => {
+                            getUserDetailUserId(result.insertId, (isDone,uObj) => {
                                 res.json({ "status": "1", "payload": uObj })
                             })
                         } else {

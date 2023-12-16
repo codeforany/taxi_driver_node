@@ -45,8 +45,8 @@ module.exports.controller = (app, io, socket_list) => {
 
                 } else {
                     var auth_token = helper.createRequestToken();
-                    db.query("INSERT INTO `user_detail` (  `mobile`, `mobile_code`,`user_type`, `push_token`, `auth_token`, `device_source`) VALUES (?,?,?, ?,?,?)", [
-                        reqObj.mobile, reqObj.mobile_code, reqObj.user_type, reqObj.push_token, auth_token, reqObj.os_type,
+                    db.query("INSERT INTO `user_detail` (  `mobile`, `mobile_code`,`user_type`, `push_token`, `auth_token`, `device_source`, `status`  ) VALUES (?,?,?, ?,?,?, ?)", [
+                        reqObj.mobile, reqObj.mobile_code, reqObj.user_type, reqObj.push_token, auth_token, reqObj.os_type, "1"
                     ], (err, result) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
@@ -154,7 +154,7 @@ module.exports.controller = (app, io, socket_list) => {
                             }
 
                             if (result.affectedRows > 0) {
-                                getUserDetailUserId(uObj.user_id, (userObj) => {
+                                getUserDetailUserId(uObj.user_id, (isDone,userObj) => {
                                     res.json({ "status": "1", "payload": userObj })
                                 })
                             } else {
@@ -170,6 +170,57 @@ module.exports.controller = (app, io, socket_list) => {
             })
         })
     })
+
+    app.post('/api/profile_image', (req, res) =>  {
+        helper.Dlog(req.body);
+
+        var form = new multiparty.Form();
+        form.parse(req, (err,reqObj, files ) => {
+            if(err){
+                helper.ThrowHtmlError(err, res);
+                return
+            } 
+
+            checkAccessToken(req.headers, res,  (uObj) => {
+                helper.CheckParameterValid(res, files, ["image"], () => {
+
+                    var extension = files.image[0].originalFilename.substring(files.image[0].originalFilename.lastIndexOf(".") + 1)
+                    var imageFileName = "profile/" + helper.fileNameGenerate(extension);
+
+                    var newPath = imageSavePath + imageFileName;
+                    fs.rename(files.image[0].path, newPath, (err) => {
+                        if(err) {
+                            helper.ThrowHtmlError(err, res);
+                            return;
+                        }else{
+                            db.query( "UPDATE `user_detail` SET `image` = ? WHERE `user_id` = ? ", [ imageFileName,  uObj.user_id], (err, result) => {
+
+                                if(err) {
+                                    helper.ThrowHtmlError(err, res);
+                                    return
+                                }
+
+                                if(result.affectedRows > 0) {
+
+                                    getUserDetailUserId(uObj.user_id, (isDone, uObj) => {
+                                        res.json({ "status": "1", "payload": uObj })
+                                    })
+
+
+                                }else{
+                                    res.json({ "status": "0", "message": msg_fail })
+                                }
+                            }  )
+                        }
+
+
+                    }  )
+                })
+            } )
+
+        })
+
+    } )
 
     app.post('/api/address_add', (req, res) => {
         helper.Dlog(req.body)

@@ -31,7 +31,6 @@ module.exports.controller = (app, io, socket_list) => {
                 helper.ThrowHtmlError(err, res);
                 return;
             }
-
             checkAccessToken(req.headers, res, (uObj) => {
                 helper.CheckParameterValid(res, reqObj, ["doc_id", "zone_doc_id", "user_car_id", "expriry_date"], () => {
 
@@ -66,9 +65,7 @@ module.exports.controller = (app, io, socket_list) => {
                 })
 
             }, "2")
-
         })
-
     })
 
     app.post('/api/document_list', (req, res) => {

@@ -182,7 +182,7 @@ module.exports.controller = (app, io, socket_list) => {
                                                         if(isServiceLast && is_car_doc_last) {
                                                             res.json({ "status": "1", "payload": payloadData })
                                                         }
-                                                    }  )
+                                                    })
 
                                                 });
 

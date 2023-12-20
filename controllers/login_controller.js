@@ -36,7 +36,7 @@ module.exports.controller = (app, io, socket_list) => {
                             return
                         }
                         if (uResult.affectedRows > 0) {
-                            getUserDetailUserId(result[0].user_id, (isDone,uObj) => {
+                            getUserDetailUserId(result[0].user_id, (isDone, uObj) => {
                                 res.json({ "status": "1", "payload": uObj })
                             })
                         }
@@ -54,7 +54,7 @@ module.exports.controller = (app, io, socket_list) => {
                         }
 
                         if (result) {
-                            getUserDetailUserId(result.insertId, (isDone,uObj) => {
+                            getUserDetailUserId(result.insertId, (isDone, uObj) => {
                                 res.json({ "status": "1", "payload": uObj })
                             })
                         } else {
@@ -67,7 +67,7 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     function getUserDetailUserId(user_id, callback) {
-        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  `image`, `status` FROM `user_detail` WHERE  `user_id` = ? ', [user_id], (err, result) => {
+        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  `image`, `status`, `zone_id`, `select_service_id`  FROM `user_detail` WHERE  `user_id` = ? ', [user_id], (err, result) => {
 
             if (err) {
                 helper.ThrowHtmlError(err);
@@ -154,7 +154,7 @@ module.exports.controller = (app, io, socket_list) => {
                             }
 
                             if (result.affectedRows > 0) {
-                                getUserDetailUserId(uObj.user_id, (isDone,userObj) => {
+                                getUserDetailUserId(uObj.user_id, (isDone, userObj) => {
                                     res.json({ "status": "1", "payload": userObj })
                                 })
                             } else {
@@ -171,17 +171,17 @@ module.exports.controller = (app, io, socket_list) => {
         })
     })
 
-    app.post('/api/profile_image', (req, res) =>  {
+    app.post('/api/profile_image', (req, res) => {
         helper.Dlog(req.body);
 
         var form = new multiparty.Form();
-        form.parse(req, (err,reqObj, files ) => {
-            if(err){
+        form.parse(req, (err, reqObj, files) => {
+            if (err) {
                 helper.ThrowHtmlError(err, res);
                 return
-            } 
+            }
 
-            checkAccessToken(req.headers, res,  (uObj) => {
+            checkAccessToken(req.headers, res, (uObj) => {
                 helper.CheckParameterValid(res, files, ["image"], () => {
 
                     var extension = files.image[0].originalFilename.substring(files.image[0].originalFilename.lastIndexOf(".") + 1)
@@ -189,38 +189,70 @@ module.exports.controller = (app, io, socket_list) => {
 
                     var newPath = imageSavePath + imageFileName;
                     fs.rename(files.image[0].path, newPath, (err) => {
-                        if(err) {
+                        if (err) {
                             helper.ThrowHtmlError(err, res);
                             return;
-                        }else{
-                            db.query( "UPDATE `user_detail` SET `image` = ? WHERE `user_id` = ? ", [ imageFileName,  uObj.user_id], (err, result) => {
+                        } else {
+                            db.query("UPDATE `user_detail` SET `image` = ? WHERE `user_id` = ? ", [imageFileName, uObj.user_id], (err, result) => {
 
-                                if(err) {
+                                if (err) {
                                     helper.ThrowHtmlError(err, res);
                                     return
                                 }
 
-                                if(result.affectedRows > 0) {
+                                if (result.affectedRows > 0) {
 
                                     getUserDetailUserId(uObj.user_id, (isDone, uObj) => {
                                         res.json({ "status": "1", "payload": uObj })
                                     })
 
 
-                                }else{
+                                } else {
                                     res.json({ "status": "0", "message": msg_fail })
                                 }
-                            }  )
+                            })
                         }
 
 
-                    }  )
+                    })
                 })
-            } )
+            })
 
         })
 
+    })
+
+
+    app.post('/api/service_and_zone_list', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj =  req.body;
+
+        checkAccessToken(req.headers, res,  (uObj) => {
+            db.query("SELECT `zl`.`zone_id`, `zl`.`zone_name` FROM `zone_list` AS `zl` " +
+            "INNER JOIN `price_detail` AS `pd` ON `pd`.`zone_id` = `zl`.`zone_id` AND `pd`.`status` = 1 " +
+            "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `pd`.`service_id` AND `sd`.`status` = 1 AND `zl`.`status` = 1 " +
+            "GROUP BY `zl`.`zone_id` ;" +
+            "SELECT `service_id`, `service_name`, `seat`, `color`, ( CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon` ) ELSE '' END ) AS `icon`, " +
+            " (CASE WHEN `top_icon` != '' THEN CONCAT('" +  helper.ImagePath() + "',`top_icon`) ELSE '' END) AS `top_icon` FROM `service_detail` " +
+            "WHERE `status` = 1 ", [], (err, result) => {
+                if(err) {
+                    helper.ThrowHtmlError(err, res);
+                    return;
+                }
+
+                res.json({
+                    'status': '1',
+                    'payload': {
+                        'zone_list' : result[0],
+                        'service_list' : result[1]
+                    }
+                })
+            } ) 
+        })
+
+
     } )
+    
 
     app.post('/api/address_add', (req, res) => {
         helper.Dlog(req.body)
@@ -582,7 +614,7 @@ module.exports.controller = (app, io, socket_list) => {
     app.post('/api/admin/user_list', (req, res) => {
         helper.Dlog(req.body)
         checkAccessToken(req.headers, res, (uObj) => {
-            db.query("SELECT `ud`.`user_id`, `ud`.`name`, `ud`.`email`, `ud`.`gender`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`user_type`, `ud`.`device_source`, `ud`.`zone_id`, `ud`.`is_block`, (CASE WHEN `ud`.`image` != '' THEN CONCAT('" + helper.ImagePath() +"', `ud`.`image`  ) ELSE '' END) AS `image` , `ud`.`is_online`, `ud`.`status`, `ud`.`created_date`, IFNULL( `zl`.`zone_name`, '' ) AS `zone_name` FROM `user_detail` AS `ud`" +
+            db.query("SELECT `ud`.`user_id`, `ud`.`name`, `ud`.`email`, `ud`.`gender`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`user_type`, `ud`.`device_source`, `ud`.`zone_id`, `ud`.`is_block`, (CASE WHEN `ud`.`image` != '' THEN CONCAT('" + helper.ImagePath() + "', `ud`.`image`  ) ELSE '' END) AS `image` , `ud`.`is_online`, `ud`.`status`, `ud`.`created_date`, IFNULL( `zl`.`zone_name`, '' ) AS `zone_name` FROM `user_detail` AS `ud`" +
                 "LEFT JOIN`zone_list` AS`zl` ON`zl`.`zone_id` = `ud`.`zone_id`" +
                 "WHERE`user_type` = 1 ORDER BY`ud`.`user_id` DESC", [], (err, result) => {
                     if (err) {
@@ -602,7 +634,7 @@ module.exports.controller = (app, io, socket_list) => {
     app.post('/api/admin/driver_list', (req, res) => {
         helper.Dlog(req.body)
         checkAccessToken(req.headers, res, (uObj) => {
-            db.query("SELECT `ud`.`user_id`, `ud`.`name`, `ud`.`email`, `ud`.`gender`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`user_type`, `ud`.`device_source`, `ud`.`zone_id`, `ud`.`is_block`, (CASE WHEN `ud`.`image` != '' THEN CONCAT('" + helper.ImagePath() +"', `ud`.`image`  ) ELSE '' END) AS `image` , `ud`.`is_online`, `ud`.`status`, `ud`.`created_date`, IFNULL( `zl`.`zone_name` , '' ) AS `zone_name` FROM `user_detail` AS `ud`" +
+            db.query("SELECT `ud`.`user_id`, `ud`.`name`, `ud`.`email`, `ud`.`gender`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`user_type`, `ud`.`device_source`, `ud`.`zone_id`, `ud`.`is_block`, (CASE WHEN `ud`.`image` != '' THEN CONCAT('" + helper.ImagePath() + "', `ud`.`image`  ) ELSE '' END) AS `image` , `ud`.`is_online`, `ud`.`status`, `ud`.`created_date`, IFNULL( `zl`.`zone_name` , '' ) AS `zone_name` FROM `user_detail` AS `ud`" +
                 "LEFT JOIN`zone_list` AS`zl` ON`zl`.`zone_id` = `ud`.`zone_id`" +
                 "WHERE`user_type` = 2 ORDER BY`ud`.`user_id` DESC", [], (err, result) => {
                     if (err) {
@@ -731,7 +763,7 @@ module.exports.controller = (app, io, socket_list) => {
         checkAccessToken(req.headers, res, (uObj) => {
 
 
-            db.query("SELECT `service_id`, `service_name`, `seat`, `color`, (CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon`  ) ELSE '' END) AS `icon`,  (CASE WHEN `top_icon` != '' THEN CONCAT('" + helper.ImagePath() +"', `top_icon`  ) ELSE '' END) AS `top_icon`, `gender`, `status`, `created_date`, `description` FROM `service_detail` WHERE `status` != 2 ", [], (err, result) => {
+            db.query("SELECT `service_id`, `service_name`, `seat`, `color`, (CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon`  ) ELSE '' END) AS `icon`,  (CASE WHEN `top_icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `top_icon`  ) ELSE '' END) AS `top_icon`, `gender`, `status`, `created_date`, `description` FROM `service_detail` WHERE `status` != 2 ", [], (err, result) => {
                 if (err) {
                     helper.ThrowHtmlError(err, res);
                     return
@@ -793,7 +825,7 @@ module.exports.controller = (app, io, socket_list) => {
                         var iconExtension = files.icon[0].originalFilename.substring(files.icon[0].originalFilename.lastIndexOf(".") + 1);
                         iconName = "service/" + helper.fileNameGenerate(iconExtension);
                         var iconNewPath = imageSavePath + iconName;
-                        updateSetValue = ", `icon` = '" + iconName +"' "
+                        updateSetValue = ", `icon` = '" + iconName + "' "
                         fs.rename(files.icon[0].path, iconNewPath, (err) => {
 
                             if (err) {
@@ -818,9 +850,9 @@ module.exports.controller = (app, io, socket_list) => {
 
                     }
 
-                    
 
-                    db.query("UPDATE `service_detail` SET `service_name`=?,`seat`=?,`color`=?,`gender`=?,`description`=? "+ updateSetValue +", `modify_date` = NOW() WHERE `service_id` = ? AND  `status` != 2 ;" , [
+
+                    db.query("UPDATE `service_detail` SET `service_name`=?,`seat`=?,`color`=?,`gender`=?,`description`=? " + updateSetValue + ", `modify_date` = NOW() WHERE `service_id` = ? AND  `status` != 2 ;", [
                         reqObj.service_name[0], reqObj.seat[0], reqObj.color[0], reqObj.gender[0], reqObj.description[0],
                         reqObj.service_id[0]
                     ], (err, result) => {
@@ -831,20 +863,20 @@ module.exports.controller = (app, io, socket_list) => {
 
                         if (result.affectedRows > 0) {
                             db.query(
-                                "SELECT `service_id`, `service_name`, `seat`, `color`, (CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon`  ) ELSE '' END) AS `icon`,  (CASE WHEN `top_icon` != '' THEN CONCAT('" + helper.ImagePath() +"', `top_icon`  ) ELSE '' END) AS `top_icon`, `gender`, `status`, `created_date`, `description` FROM `service_detail` WHERE `service_id` = ? ", [
-                                 reqObj.service_id[0]
+                                "SELECT `service_id`, `service_name`, `seat`, `color`, (CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon`  ) ELSE '' END) AS `icon`,  (CASE WHEN `top_icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `top_icon`  ) ELSE '' END) AS `top_icon`, `gender`, `status`, `created_date`, `description` FROM `service_detail` WHERE `service_id` = ? ", [
+                                reqObj.service_id[0]
                             ], (err, result) => {
 
-                                    if (err) {
-                                        helper.ThrowHtmlError(err, res);
-                                        return;
-                                    }
-                                    res.json({
-                                        "status": "1", "message": "service updated successfully", "payload": result[0]
-                                    })
+                                if (err) {
+                                    helper.ThrowHtmlError(err, res);
+                                    return;
+                                }
+                                res.json({
+                                    "status": "1", "message": "service updated successfully", "payload": result[0]
+                                })
 
                             })
-                            
+
                         } else {
                             res.json({ "status": "0", "message": msg_fail })
                         }

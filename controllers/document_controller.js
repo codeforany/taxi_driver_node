@@ -73,7 +73,6 @@ module.exports.controller = (app, io, socket_list) => {
         var reqObj = req.body;
 
         checkAccessToken(req.headers, res, (uObj) => {
-
             helper.CheckParameterValid(res, reqObj, ["user_car_id"], () => {
                 db.query('SELECT IFNULL(`select_service_id`, "" ) AS `select_service_id` FROM `user_detail` WHERE `user_id` != ?', [uObj.user_id], (err, result) => {
                     if (err) {
@@ -82,8 +81,6 @@ module.exports.controller = (app, io, socket_list) => {
                     }
 
                     if (result.length > 0) {
-
-
                         if (result[0].select_service_id != "") {
                             db.query("SELECT `zwd`.`zone_doc_id`, `zwd`.`service_id`, `zwd`.`personal_doc`, `zwd`.`car_doc`, `sd`.`service_name`, `sd`.`color` FROM `zone_document` AS `zwd`" +
                                 "INNER JOIN`user_detail` AS`ud` ON`ud`.`zone_id` = `zwd`.`zone_id` AND`ud`.`user_id` = ? " +
@@ -198,19 +195,13 @@ module.exports.controller = (app, io, socket_list) => {
                         } else {
                             res.json({ "status": "0", "message": "Please select service" })
                         }
-
-
                         // res.json({ "status": "1", "payload": result })
-
                     } else {
                         res.json({ "status": "0", "message": msg_invalidUser })
                     }
                 })
             })
-
-
         }, "2")
-
     })
 
     //Admin Api
@@ -303,8 +294,6 @@ module.exports.controller = (app, io, socket_list) => {
             })
         }, "4")
     })
-
-
 
     // app.post('/api/upload_image', (req, res) => {
     //     var form = new multiparty.Form();

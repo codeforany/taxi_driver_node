@@ -412,7 +412,7 @@ module.exports.controller = (app, io, socket_list) => {
                 }
 
                 if (result.length > 0) {
-                    res.json({ "status": "1", "payload": result })
+                    res.json({ "status": "1", "payload": result[0] })
                 } else {
                     res.json({ "status": "0", "message": "no bank info" })
                 }
@@ -456,7 +456,7 @@ module.exports.controller = (app, io, socket_list) => {
                         })
                     } else {
                         // New Add
-                        db.query("INSER INTO `bank_detail` (`user_id`, `account_name`, `bsb`, `account_no`, `bank_name` ) VALUES (?,?,?, ?,?) ", [uObj.user_id, reqObj.account_name, reqObj.ifsc, reqObj.account_no, reqObj.bank_name], (err, result) => {
+                        db.query("INSERT INTO `bank_detail` (`user_id`, `account_name`, `bsb`, `account_no`, `bank_name` ) VALUES (?,?,?, ?,?) ", [uObj.user_id, reqObj.account_name, reqObj.ifsc, reqObj.account_no, reqObj.bank_name], (err, result) => {
                             if (err) {
                                 helper.ThrowHtmlError(err, res);
                                 return

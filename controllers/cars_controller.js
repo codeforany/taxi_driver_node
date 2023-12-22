@@ -62,7 +62,7 @@ module.exports.controller = (app, io, socket_list) => {
 
                                 break;
 
-                            case "2":
+                            case "3":
                                 // exits brand, exits model, new series add
                                 car_series_add(reqObj.brand[0], reqObj.model[0], reqObj.series[0], (series_id) => {
                                     user_car_add(uObj.user_id, series_id, reqObj.car_number[0], files.image[0], (resObj) => {

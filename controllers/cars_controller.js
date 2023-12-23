@@ -154,6 +154,8 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/car_delete', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj = req.body;
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["user_car_id"], () => {
                 db.query('UPDATE  `user_cars` SET `status` = ? WHERE `user_car_id` = ? AND `user_id` = ? ', [2, reqObj.user_car_id, uObj.user_id], (err, result) => {
@@ -163,7 +165,6 @@ module.exports.controller = (app, io, socket_list) => {
                     }
 
                     if (result.length > 0) {
-                        result.push(other_dict)
                         res.json({ "status": "1", "message": "car deleted succfully" })
 
                     } else {
@@ -176,11 +177,15 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/set_running_car', (req, res) => {
+
+        helper.Dlog(req.body);
+        var reqObj = req.body;
+
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["user_car_id"], () => {
                 db.query('UPDATE `user_cars` AS `ucd` ' +
                     "INNER JOIN `user_detail` AS `ud` ON `ucd`.`user_id` = `ud`.`user_id` " +
-                    "INNER JOIN `car_service` AS `cs` ON `cs`.`service_id` = `ucd`.`service_id` " +
+                    "INNER JOIN `car_service` AS `cs` ON `cs`.`series_id` = `ucd`.`series_id` " +
                     "INNER JOIN `car_model` AS `cm` ON `cs`.`model_id` = `cm`.`model_id` " +
                     "INNER JOIN `car_brand` AS  `cb` ON `cb`.`brand_id` = `cs`.`brand_id` " +
                     "SET `ud`.`car_id` = `ucd`.`user_car_id`, `ud`.`seat` = `cm`.`seat` " +
@@ -194,7 +199,7 @@ module.exports.controller = (app, io, socket_list) => {
                         if (result.affectedRows > 0) {
 
                             db.query('SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`, `uc`.`car_image`, `uc`.`status`  FROM `user_cars` AS `uc` ' +
-                                'INNER JOIN `car_series` AS `cs` ON  `uc`.`service_id` = `cs`.`service_id` ' +
+                                'INNER JOIN `car_series` AS `cs` ON  `uc`.`series_id` = `cs`.`series_id` ' +
                                 'INNER JOIN `car_model` AS `cm` ON  `cm`.`model_id` = `cm`.`model_id` ' +
                                 'INNER JOIN `car_brand` AS `cb` ON `cb`.`brand_id` = `cm`.`brand_id`  ' +
                                 "WHERE `uc`.`user_car_id` = ? AND `uc`.`status` = ? ", [reqObj.user_car_id, 1], (err, result) => {

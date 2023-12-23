@@ -87,7 +87,7 @@ module.exports.controller = (app, io, socket_list) => {
     app.post('/api/car_list', (req, res) => {
         checkAccessToken(req.headers, res, (uObj) => {
 
-            db.query('SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`, (CASE WHEN `uc`.`car_image` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `uc`.`car_image`  ) ELSE "" END) AS `car_image`, `uc`.`status`, `sd`.`service_name`, `sd`.`service_id`, `ud`.`select_service_id`, IFNULL(`zwcs`.`status`, 0) AS `service_status`  FROM `user_cars` AS `uc` ' +
+            db.query('SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`, (CASE WHEN `uc`.`car_image` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `uc`.`car_image`  ) ELSE "" END) AS `car_image`, `uc`.`status`, `sd`.`service_name`, `sd`.`service_id`, `ud`.`select_service_id`, IFNULL(`zwcs`.`status`, 0) AS `service_status`,  (CASE WHEN `uc`.`user_car_id` = `ud`.`car_id` THEN 1 ELSE 0 END) AS `is_set_running`  FROM `user_cars` AS `uc` ' +
                 'INNER JOIN `car_series` AS `cs` ON  `uc`.`series_id` = `cs`.`series_id` ' +
                 'INNER JOIN `car_model` AS `cm` ON  `cm`.`model_id` = `cm`.`model_id` ' +
                 'INNER JOIN `car_brand` AS `cb` ON `cb`.`brand_id` = `cm`.`brand_id`  ' +
@@ -185,7 +185,7 @@ module.exports.controller = (app, io, socket_list) => {
             helper.CheckParameterValid(res, reqObj, ["user_car_id"], () => {
                 db.query('UPDATE `user_cars` AS `ucd` ' +
                     "INNER JOIN `user_detail` AS `ud` ON `ucd`.`user_id` = `ud`.`user_id` " +
-                    "INNER JOIN `car_service` AS `cs` ON `cs`.`series_id` = `ucd`.`series_id` " +
+                    "INNER JOIN `car_series` AS `cs` ON `cs`.`series_id` = `ucd`.`series_id` " +
                     "INNER JOIN `car_model` AS `cm` ON `cs`.`model_id` = `cm`.`model_id` " +
                     "INNER JOIN `car_brand` AS  `cb` ON `cb`.`brand_id` = `cs`.`brand_id` " +
                     "SET `ud`.`car_id` = `ucd`.`user_car_id`, `ud`.`seat` = `cm`.`seat` " +
@@ -198,10 +198,11 @@ module.exports.controller = (app, io, socket_list) => {
 
                         if (result.affectedRows > 0) {
 
-                            db.query('SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`, `uc`.`car_image`, `uc`.`status`  FROM `user_cars` AS `uc` ' +
+                            db.query('SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`,  (CASE WHEN `uc`.`car_image` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `uc`.`car_image`  ) ELSE "" END) AS `car_image`, `uc`.`status`,(CASE WHEN `uc`.`user_car_id` = `ud`.`car_id` THEN 1 ELSE 0 END) AS `is_set_running`  FROM `user_cars` AS `uc` ' +
                                 'INNER JOIN `car_series` AS `cs` ON  `uc`.`series_id` = `cs`.`series_id` ' +
                                 'INNER JOIN `car_model` AS `cm` ON  `cm`.`model_id` = `cm`.`model_id` ' +
                                 'INNER JOIN `car_brand` AS `cb` ON `cb`.`brand_id` = `cm`.`brand_id`  ' +
+                                'INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `uc`.`user_id` ' +
                                 "WHERE `uc`.`user_car_id` = ? AND `uc`.`status` = ? ", [reqObj.user_car_id, 1], (err, result) => {
 
                                     if (err) {

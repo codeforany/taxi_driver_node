@@ -67,7 +67,7 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     function getUserDetailUserId(user_id, callback) {
-        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  `image`, `status`, `zone_id`, `select_service_id`  FROM `user_detail` WHERE  `user_id` = ? ', [user_id], (err, result) => {
+        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  (CASE WHEN `image` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `image`  ) ELSE "" END) AS `image`, `status`, `zone_id`, `select_service_id`  FROM `user_detail` WHERE  `user_id` = ? ', [user_id], (err, result) => {
 
             if (err) {
                 helper.ThrowHtmlError(err);

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.1
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 11, 2023 at 05:30 AM
--- Server version: 10.4.21-MariaDB
--- PHP Version: 8.1.0
+-- Generation Time: Dec 23, 2023 at 04:35 AM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -36,7 +36,14 @@ CREATE TABLE `bank_detail` (
   `bank_name` varchar(150) NOT NULL DEFAULT '',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `status` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `bank_detail`
+--
+
+INSERT INTO `bank_detail` (`bank_id`, `user_id`, `account_name`, `bsb`, `account_no`, `bank_name`, `created_date`, `status`) VALUES
+(1, 5, 'A Patel', 'YT123456', '7894561230', 'SBI', '2023-12-20 10:32:26', 1);
 
 -- --------------------------------------------------------
 
@@ -81,7 +88,7 @@ CREATE TABLE `booking_detail` (
   `user_rating` varchar(5) NOT NULL DEFAULT '0',
   `user_comment` text NOT NULL DEFAULT '',
   `status` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -95,7 +102,14 @@ CREATE TABLE `car_brand` (
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '0 = inactive, 1 = active, 2 = delete',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `car_brand`
+--
+
+INSERT INTO `car_brand` (`brand_id`, `brand_name`, `status`, `created_date`, `modify_date`) VALUES
+(1, 'BMW', 1, '2023-12-21 10:24:22', '2023-12-21 10:24:22');
 
 -- --------------------------------------------------------
 
@@ -111,7 +125,15 @@ CREATE TABLE `car_model` (
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '0 = inactive, 1 = active, 2= delete',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `car_model`
+--
+
+INSERT INTO `car_model` (`model_id`, `brand_id`, `model_name`, `seat`, `status`, `created_date`, `modify_date`) VALUES
+(1, 1, 'X3', 4, 1, '2023-12-21 10:25:02', '2023-12-21 10:25:02'),
+(2, 1, 'X5', 4, 1, '2023-12-23 08:49:27', '2023-12-23 08:49:27');
 
 -- --------------------------------------------------------
 
@@ -127,7 +149,15 @@ CREATE TABLE `car_series` (
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '1 = active, 2 = delete',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `car_series`
+--
+
+INSERT INTO `car_series` (`series_id`, `brand_id`, `model_id`, `series_name`, `status`, `created_date`, `modify_date`) VALUES
+(1, 1, 1, 'xLine', 1, '2023-12-21 10:26:19', '2023-12-21 10:26:19'),
+(2, 1, 2, 'xLoin', 1, '2023-12-23 08:49:27', '2023-12-23 08:49:27');
 
 -- --------------------------------------------------------
 
@@ -145,7 +175,7 @@ CREATE TABLE `chat_message` (
   `modify_date` datetime NOT NULL DEFAULT current_timestamp(),
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '0 = send, 1= receive, 2= view , 3 = sender delete, 4 = receiver delete, 5 = all delete',
   `message_type` int(1) NOT NULL DEFAULT 1 COMMENT '0 = text, 1 = file'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -164,7 +194,7 @@ CREATE TABLE `crad_payment` (
   `txn_id` varchar(30) NOT NULL DEFAULT '',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -179,7 +209,18 @@ CREATE TABLE `document` (
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '0 = inactive, 1 = active, 2 = delete',
   `create_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `document`
+--
+
+INSERT INTO `document` (`doc_id`, `name`, `type`, `status`, `create_date`, `modify_date`) VALUES
+(2, 'ID Card', 2, 2, '2023-11-13 12:07:54', '2023-11-15 11:11:19'),
+(3, 'PAN ID', 2, 2, '2023-11-14 00:46:28', '2023-11-15 11:51:34'),
+(4, 'ID Card Back Side', 1, 1, '2023-11-14 01:14:09', '2023-11-14 01:14:09'),
+(5, 'P12', 2, 2, '2023-11-15 11:02:52', '2023-11-15 11:11:35'),
+(6, 'Car PUC', 2, 1, '2023-11-28 10:18:29', '2023-11-28 10:18:29');
 
 -- --------------------------------------------------------
 
@@ -196,7 +237,7 @@ CREATE TABLE `driver_document` (
   `status` int(1) NOT NULL DEFAULT 0 COMMENT '0 = new, 1 = delete, 2 = approved, 3 = unapproved, 4 = expriy in 15 day, 5 = expired',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -221,7 +262,7 @@ CREATE TABLE `payment_detail` (
   `pay_wallet_amt` varchar(25) NOT NULL DEFAULT '0',
   `pay_amt` varchar(25) NOT NULL DEFAULT '0',
   `front_pay_amount` varchar(25) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -239,12 +280,22 @@ CREATE TABLE `price_detail` (
   `booking_charge` varchar(20) NOT NULL DEFAULT '0',
   `mini_fair` varchar(20) NOT NULL DEFAULT '0',
   `mini_km` varchar(20) NOT NULL DEFAULT '2',
-  `cancel_change` varchar(20) NOT NULL DEFAULT '0',
+  `cancel_charge` varchar(20) NOT NULL DEFAULT '0',
   `tax` varchar(20) NOT NULL DEFAULT '0',
   `status` int(1) NOT NULL DEFAULT 1,
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `price_detail`
+--
+
+INSERT INTO `price_detail` (`price_id`, `zone_id`, `service_id`, `base_charge`, `per_km_charge`, `per_min_charge`, `booking_charge`, `mini_fair`, `mini_km`, `cancel_charge`, `tax`, `status`, `created_date`, `modify_date`) VALUES
+(1, 2, '1', '2', '0.2', '0.1', '2', '2', '2', '2', '12', 1, '2023-11-28 10:20:17', '2023-11-28 10:20:17'),
+(2, 2, '2', '2.5', '0.3', '0.2', '3', '3', '3', '3', '12', 1, '2023-11-28 10:20:17', '2023-11-28 10:20:17'),
+(3, 3, '1', '6', '1', '1', '1.5', '10', '4', '1', '12', 1, '2023-12-02 12:18:57', '2023-12-02 12:18:57'),
+(4, 3, '2', '7', '2', '2', '2.5', '12', '5', '1', '12', 1, '2023-12-02 12:18:57', '2023-12-02 12:18:57');
 
 -- --------------------------------------------------------
 
@@ -259,7 +310,7 @@ CREATE TABLE `request_detail` (
   `status` int(1) NOT NULL DEFAULT 0,
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `status_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -279,7 +330,15 @@ CREATE TABLE `service_detail` (
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp(),
   `description` text NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `service_detail`
+--
+
+INSERT INTO `service_detail` (`service_id`, `service_name`, `seat`, `color`, `icon`, `top_icon`, `gender`, `status`, `created_date`, `modify_date`, `description`) VALUES
+(1, 'GO RED', '5', '000000', 'service/20231117094101411CpBGrGRXSz.png', 'service/202311170947354735KOWhgBN75O.png', 'M,F', 1, '2023-11-16 10:32:40', '2023-11-17 09:47:35', 'GO123'),
+(2, 'GO GREEN', '4', '00ff00', 'service/202311211455255525bV9LqKbA3I.png', 'service/202311211455255525foO2cKCPbd.png', 'M,F', 0, '2023-11-21 14:55:25', '2023-11-21 14:55:25', 'GO');
 
 -- --------------------------------------------------------
 
@@ -306,7 +365,7 @@ CREATE TABLE `subscription_plan` (
   `status` int(11) NOT NULL DEFAULT 1 COMMENT '1 = active, 2 = delete',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -324,7 +383,7 @@ CREATE TABLE `user_address` (
   `tag_name` varchar(100) NOT NULL DEFAULT '',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -335,13 +394,21 @@ CREATE TABLE `user_address` (
 CREATE TABLE `user_cars` (
   `user_car_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL DEFAULT 0,
-  `service_id` varchar(100) NOT NULL DEFAULT '',
+  `series_id` varchar(100) NOT NULL,
   `car_number` varchar(30) NOT NULL DEFAULT '',
   `car_image` varchar(100) NOT NULL DEFAULT '',
   `status` int(1) NOT NULL DEFAULT 0 COMMENT '0 = new added, 1= approved, 2 = delete',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_cars`
+--
+
+INSERT INTO `user_cars` (`user_car_id`, `user_id`, `series_id`, `car_number`, `car_image`, `status`, `created_date`, `modify_date`) VALUES
+(1, 5, '1', 'AA123', 'car/202312230847484748K2WbhjR4Og.jpg', 0, '2023-12-23 08:47:48', '2023-12-23 08:47:48'),
+(2, 5, '2', '!@$12345', 'car/202312230849274927F6CGMLWl3j.jpg', 0, '2023-12-23 08:49:27', '2023-12-23 08:49:27');
 
 -- --------------------------------------------------------
 
@@ -362,7 +429,7 @@ CREATE TABLE `user_detail` (
   `auth_token` varchar(200) NOT NULL DEFAULT '',
   `device_source` varchar(10) NOT NULL DEFAULT 'i' COMMENT 'i = iOS, a = Android, w = web',
   `zone_id` int(11) NOT NULL DEFAULT 0,
-  `select_service_id` int(11) NOT NULL DEFAULT 0,
+  `select_service_id` varchar(100) NOT NULL DEFAULT '0',
   `expiry_date` datetime NOT NULL DEFAULT current_timestamp(),
   `is_block` int(1) NOT NULL DEFAULT 0 COMMENT ' 0 = unblock, 1 = block ',
   `lati` varchar(50) NOT NULL DEFAULT '0.0',
@@ -376,7 +443,17 @@ CREATE TABLE `user_detail` (
   `status` int(1) NOT NULL DEFAULT 0 COMMENT ' 0 = not verify, 1 = not apporved, 2 = approved, 3 = on ride',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_detail`
+--
+
+INSERT INTO `user_detail` (`user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `password`, `user_type`, `push_token`, `auth_token`, `device_source`, `zone_id`, `select_service_id`, `expiry_date`, `is_block`, `lati`, `longi`, `reset_code`, `image`, `car_id`, `seat`, `is_online`, `is_request_send`, `status`, `created_date`, `modify_date`) VALUES
+(1, 'admin', 'admin@admin.com', '', '', '', '123456', 4, '', 'QEqBsCzMfX691BoqFzrB', 'i', 0, '0', '2023-11-11 10:11:17', 0, '0.0', '0.0', '000000', '', '', 0, 0, 0, 1, '2023-11-11 10:11:17', '2023-11-12 10:37:42'),
+(2, 'User1', 'user@gmail.com', 'M', '9876543212', '+91', '00000000', 1, '', 'asdaasdasdasdasdasd', 'i', 0, '0', '2023-11-18 17:58:15', 0, '0.0', '0.0', '000000', '', '', 0, 1, 0, 0, '2023-11-18 17:58:15', '2023-11-18 17:58:15'),
+(3, 'Driver1', 'driver@gmail.com', 'M', '9876543211', '+91', '00000000', 2, '', 'Ama123ASDasdasd123', 'i', 0, '0', '2023-11-19 10:13:59', 0, '0.0', '0.0', '000000', '', '', 0, 1, 0, 0, '2023-11-19 10:13:59', '2023-11-19 10:13:59'),
+(5, 'Json Data', 'json@data.com', 'm', '9876543210', '+91', '00000000', 2, '', 'KsDvClz2cCZxG1rcYIfF', 'a', 2, '1', '2023-12-13 12:11:03', 0, '0.0', '0.0', '000000', 'profile/202312230846274627jdVekhj2et.jpg', '', 0, 0, 0, 1, '2023-12-13 12:11:03', '2023-12-18 10:27:24');
 
 -- --------------------------------------------------------
 
@@ -390,7 +467,7 @@ CREATE TABLE `user_notification` (
   `notification_status` int(11) NOT NULL,
   `status_date` datetime NOT NULL DEFAULT current_timestamp(),
   `created_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -407,7 +484,7 @@ CREATE TABLE `wallet` (
   `wallet_status` varchar(2) NOT NULL DEFAULT 'cr' COMMENT 'cr = credit, dr = debit',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `status` int(11) NOT NULL DEFAULT 1 COMMENT '0 = recode, 1 = proccesing, 2 = done, 3 = fail, 4 = delete'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -426,7 +503,17 @@ CREATE TABLE `zone_document` (
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '0 = inactive, 1 = active, 2 = delete',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `zone_document`
+--
+
+INSERT INTO `zone_document` (`zone_doc_id`, `zone_id`, `service_id`, `personal_doc`, `car_doc`, `required_personal_doc`, `required_car_doc`, `status`, `created_date`, `modify_date`) VALUES
+(1, 2, 1, '4', '6', '', '', 1, '2023-11-28 10:20:17', '2023-11-28 10:20:17'),
+(2, 2, 2, '4', '6', '', '', 1, '2023-11-28 10:20:17', '2023-11-28 10:20:17'),
+(3, 3, 1, '4', '6', '', '', 1, '2023-12-02 12:18:57', '2023-12-02 12:18:57'),
+(4, 3, 2, '4', '6', '', '', 1, '2023-12-02 12:18:57', '2023-12-02 12:18:57');
 
 -- --------------------------------------------------------
 
@@ -443,7 +530,16 @@ CREATE TABLE `zone_list` (
   `status` int(1) NOT NULL DEFAULT 0 COMMENT '0 = inactive, 1 = active, 2 = delete',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `modify_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `zone_list`
+--
+
+INSERT INTO `zone_list` (`zone_id`, `zone_name`, `zone_json`, `city`, `tax`, `status`, `created_date`, `modify_date`) VALUES
+(1, 'Surat', '[{\"lat\":21.234071405319412,\"lng\":72.78741790923924},{\"lat\":21.193103915519966,\"lng\":72.75171234283299},{\"lat\":21.122023996604224,\"lng\":72.76819183502049},{\"lat\":21.099604337748353,\"lng\":72.85539581451268},{\"lat\":21.13163138470797,\"lng\":72.93024017486424},{\"lat\":21.193103915519966,\"lng\":72.95152618560643},{\"lat\":21.236631495808417,\"lng\":72.91376068267674},{\"lat\":21.25839046976389,\"lng\":72.87393524322361},{\"lat\":21.262229955104054,\"lng\":72.81351043853611}]', 'Surat', '12', 2, '2023-11-28 10:09:23', '2023-11-28 10:09:23'),
+(2, 'Surat', '[{\"lat\":21.25122247003966,\"lng\":72.76684190292423},{\"lat\":21.194895788101793,\"lng\":72.74212266464298},{\"lat\":21.118052067819878,\"lng\":72.75585557479923},{\"lat\":21.079615265628558,\"lng\":72.8258934165961},{\"lat\":21.120614167454328,\"lng\":72.98931504745548},{\"lat\":21.224341963397286,\"lng\":72.90691758651798},{\"lat\":21.284496302888716,\"lng\":72.88356526831052},{\"lat\":21.26786032663738,\"lng\":72.78194173315427}]', 'Surat', '12', 1, '2023-11-28 10:20:17', '2023-11-28 10:20:17'),
+(3, 'Vipu', '[{\"lat\":37.36325328573653,\"lng\":-122.0300589375883},{\"lat\":37.3321391686025,\"lng\":-122.05924137167032},{\"lat\":37.300192853717434,\"lng\":-122.07915409139689},{\"lat\":37.30811243663259,\"lng\":-122.0032797627836},{\"lat\":37.342511973600786,\"lng\":-121.94697483114298},{\"lat\":37.362161780608204,\"lng\":-122.00602634481486}]', 'Vapi', '12', 1, '2023-12-02 12:18:57', '2023-12-02 12:18:57');
 
 -- --------------------------------------------------------
 
@@ -460,7 +556,7 @@ CREATE TABLE `zone_wise_cars_service` (
   `status_message` varchar(100) NOT NULL DEFAULT '',
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '1 = active,',
   `created_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -475,7 +571,7 @@ CREATE TABLE `zone_wise_doc_link` (
   `user_car_id` int(11) NOT NULL DEFAULT 0,
   `doc_status` int(11) NOT NULL DEFAULT 0 COMMENT '0 = new, 1 = delete, 2 = app 3 =unapprov, 4 = expiry in 15, 5 = expired',
   `linked_date` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -627,7 +723,7 @@ ALTER TABLE `zone_wise_doc_link`
 -- AUTO_INCREMENT for table `bank_detail`
 --
 ALTER TABLE `bank_detail`
-  MODIFY `bank_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `bank_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `booking_detail`
@@ -639,19 +735,19 @@ ALTER TABLE `booking_detail`
 -- AUTO_INCREMENT for table `car_brand`
 --
 ALTER TABLE `car_brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `car_model`
 --
 ALTER TABLE `car_model`
-  MODIFY `model_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `model_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `car_series`
 --
 ALTER TABLE `car_series`
-  MODIFY `series_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `series_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `chat_message`
@@ -669,7 +765,7 @@ ALTER TABLE `crad_payment`
 -- AUTO_INCREMENT for table `document`
 --
 ALTER TABLE `document`
-  MODIFY `doc_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `doc_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `driver_document`
@@ -687,7 +783,7 @@ ALTER TABLE `payment_detail`
 -- AUTO_INCREMENT for table `price_detail`
 --
 ALTER TABLE `price_detail`
-  MODIFY `price_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `price_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `request_detail`
@@ -699,7 +795,7 @@ ALTER TABLE `request_detail`
 -- AUTO_INCREMENT for table `service_detail`
 --
 ALTER TABLE `service_detail`
-  MODIFY `service_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `service_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `subscription_plan`
@@ -717,13 +813,13 @@ ALTER TABLE `user_address`
 -- AUTO_INCREMENT for table `user_cars`
 --
 ALTER TABLE `user_cars`
-  MODIFY `user_car_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_car_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `user_detail`
 --
 ALTER TABLE `user_detail`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `user_notification`
@@ -741,13 +837,13 @@ ALTER TABLE `wallet`
 -- AUTO_INCREMENT for table `zone_document`
 --
 ALTER TABLE `zone_document`
-  MODIFY `zone_doc_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `zone_doc_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `zone_list`
 --
 ALTER TABLE `zone_list`
-  MODIFY `zone_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `zone_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `zone_wise_cars_service`

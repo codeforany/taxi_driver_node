@@ -87,15 +87,15 @@ module.exports.controller = (app, io, socket_list) => {
     app.post('/api/car_list', (req, res) => {
         checkAccessToken(req.headers, res, (uObj) => {
 
-            db.query('SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`, `uc`.`car_image`, `uc`.`status`, `sd`.`service_name`, `sd`.`service_id`, `ud`.`select_service_id`, IFNULL(`zwcs`.`status`, 0) AS `service_status`  FROM `user_cars` AS `uc` ' +
-                'INNER JOIN `car_series` AS `cs` ON  `uc`.`service_id` = `cs`.`service_id` ' +
+            db.query('SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`, (CASE WHEN `uc`.`car_image` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `uc`.`car_image`  ) ELSE "" END) AS `car_image`, `uc`.`status`, `sd`.`service_name`, `sd`.`service_id`, `ud`.`select_service_id`, IFNULL(`zwcs`.`status`, 0) AS `service_status`  FROM `user_cars` AS `uc` ' +
+                'INNER JOIN `car_series` AS `cs` ON  `uc`.`series_id` = `cs`.`series_id` ' +
                 'INNER JOIN `car_model` AS `cm` ON  `cm`.`model_id` = `cm`.`model_id` ' +
                 'INNER JOIN `car_brand` AS `cb` ON `cb`.`brand_id` = `cm`.`brand_id`  ' +
                 'INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `uc`.`user_id` ' +
                 'INNER JOIN `zone_document` AS `zwd` ON `zwd`.`zone_id` = `ud`.`zone_id` AND `zwd`.`status` = 1 ' +
                 'INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `zwd`.`service_id` ' +
                 'LEFT JOIN  `zone_wise_cars_service` AS  `zwcs` ON `zwcs`.`user_car_id` = `uc`.`user_car_id` AND `zwd`.`zone_doc_id` = `zwcs`.`zone_doc_id` '
-                + ' WHERE  `uc`.`user_id` != ? AND `uc`.`status` != ? GROUP BY `uc`.`user_car_id`, `sd`.`service_id` ORDER BY `uc`.`user_car_id`  ', [uObj.user_id, 2], (err, result) => {
+                + ' WHERE  `uc`.`user_id` = ? AND `uc`.`status` != ? GROUP BY `uc`.`user_car_id`, `sd`.`service_id` ORDER BY `uc`.`user_car_id`  ', [uObj.user_id, 2], (err, result) => {
                     if (err) {
                         helper.ThrowHtmlError(err, res);
                         return
@@ -108,6 +108,9 @@ module.exports.controller = (app, io, socket_list) => {
                         var car_index = 0;
 
                         result.forEach((carDetail, index) => {
+
+                            helper.Dlog(carDetail);
+
                             if (carDetail.series_name == "") {
                                 result[index].series_name = "-"
                             }
@@ -132,8 +135,8 @@ module.exports.controller = (app, io, socket_list) => {
                                     }
                                 })
                             }
-                            delete car_index[car_index]["service_name"]
-                            delete car_index[car_index]["service_status"]
+                            delete car_list[car_index]["service_name"]
+                            delete car_list[car_index]["service_status"]
 
                         });
                         car_list[car_index].service_missing_name = car_list[car_index].service_missing_name.replace(/,\s*$/, "")
@@ -909,6 +912,7 @@ function car_series_add(brand_id, model_id, car_series, callback) {
 }
 
 function user_car_add(user_id, series_id, car_number, car_image_path, callback) {
+    helper.Dlog("calling user_car_add");
     db.query("SELECT `user_car_id` FROM `user_cars` WHERE `user_id` = ? AND `series_id` = ? AND `car_number` = ? AND `status` != 2 ", [user_id, series_id, car_number], (err, result) => {
         if (err) {
             helper.ThrowHtmlError(err);
@@ -932,8 +936,8 @@ function user_car_add(user_id, series_id, car_number, car_image_path, callback) 
                 }
             })
 
-            db.query("INSERT INTO `user_cars`( `user_id`, `service_id`, `car_number`, `car_image`) VALUES (?,?,?, ? )", [
-                user_id, series_id, car_number, newPath,
+            db.query("INSERT INTO `user_cars`( `user_id`, `series_id`, `car_number`, `car_image`) VALUES (?,?,?, ? )", [
+                user_id, series_id, car_number, imageFileName,
             ], (err, result) => {
                 if (err) {
                     helper.ThrowHtmlError(err);

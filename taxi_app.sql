@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Dec 23, 2023 at 04:35 AM
+-- Generation Time: Jan 08, 2024 at 05:23 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -109,7 +109,8 @@ CREATE TABLE `car_brand` (
 --
 
 INSERT INTO `car_brand` (`brand_id`, `brand_name`, `status`, `created_date`, `modify_date`) VALUES
-(1, 'BMW', 1, '2023-12-21 10:24:22', '2023-12-21 10:24:22');
+(1, 'BMW', 1, '2023-12-21 10:24:22', '2023-12-21 10:24:22'),
+(2, '0', 1, '2024-01-04 10:10:23', '2024-01-04 10:10:23');
 
 -- --------------------------------------------------------
 
@@ -133,7 +134,8 @@ CREATE TABLE `car_model` (
 
 INSERT INTO `car_model` (`model_id`, `brand_id`, `model_name`, `seat`, `status`, `created_date`, `modify_date`) VALUES
 (1, 1, 'X3', 4, 1, '2023-12-21 10:25:02', '2023-12-21 10:25:02'),
-(2, 1, 'X5', 4, 1, '2023-12-23 08:49:27', '2023-12-23 08:49:27');
+(2, 1, 'X5', 4, 1, '2023-12-23 08:49:27', '2023-12-23 08:49:27'),
+(3, 2, 'XZY', 7, 1, '2024-01-04 10:10:23', '2024-01-04 10:10:23');
 
 -- --------------------------------------------------------
 
@@ -157,7 +159,21 @@ CREATE TABLE `car_series` (
 
 INSERT INTO `car_series` (`series_id`, `brand_id`, `model_id`, `series_name`, `status`, `created_date`, `modify_date`) VALUES
 (1, 1, 1, 'xLine', 1, '2023-12-21 10:26:19', '2023-12-21 10:26:19'),
-(2, 1, 2, 'xLoin', 1, '2023-12-23 08:49:27', '2023-12-23 08:49:27');
+(2, 1, 2, 'xLoin', 1, '2023-12-23 08:49:27', '2023-12-23 08:49:27'),
+(3, 2, 3, 'YUR', 1, '2024-01-04 10:10:23', '2024-01-04 10:10:23');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chat_delete`
+--
+
+CREATE TABLE `chat_delete` (
+  `d_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `receiver_id` int(11) NOT NULL,
+  `created_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -407,8 +423,10 @@ CREATE TABLE `user_cars` (
 --
 
 INSERT INTO `user_cars` (`user_car_id`, `user_id`, `series_id`, `car_number`, `car_image`, `status`, `created_date`, `modify_date`) VALUES
-(1, 5, '1', 'AA123', 'car/202312230847484748K2WbhjR4Og.jpg', 0, '2023-12-23 08:47:48', '2023-12-23 08:47:48'),
-(2, 5, '2', '!@$12345', 'car/202312230849274927F6CGMLWl3j.jpg', 0, '2023-12-23 08:49:27', '2023-12-23 08:49:27');
+(1, 5, '1', 'AA123', 'car/202312230847484748K2WbhjR4Og.jpg', 1, '2023-12-23 08:47:48', '2023-12-23 08:47:48'),
+(2, 5, '2', '!@$12345', 'car/202312230849274927F6CGMLWl3j.jpg', 2, '2023-12-23 08:49:27', '2023-12-23 08:49:27'),
+(3, 5, '1', 'XY123456', 'car/2024010410072372367He0c52zW.jpg', 1, '2024-01-04 10:07:23', '2024-01-04 10:07:23'),
+(4, 5, '3', 'NT123456', 'car/202401041010231023LwqVYUHVHK.jpg', 1, '2024-01-04 10:10:23', '2024-01-04 10:10:23');
 
 -- --------------------------------------------------------
 
@@ -453,7 +471,7 @@ INSERT INTO `user_detail` (`user_id`, `name`, `email`, `gender`, `mobile`, `mobi
 (1, 'admin', 'admin@admin.com', '', '', '', '123456', 4, '', 'QEqBsCzMfX691BoqFzrB', 'i', 0, '0', '2023-11-11 10:11:17', 0, '0.0', '0.0', '000000', '', '', 0, 0, 0, 1, '2023-11-11 10:11:17', '2023-11-12 10:37:42'),
 (2, 'User1', 'user@gmail.com', 'M', '9876543212', '+91', '00000000', 1, '', 'asdaasdasdasdasdasd', 'i', 0, '0', '2023-11-18 17:58:15', 0, '0.0', '0.0', '000000', '', '', 0, 1, 0, 0, '2023-11-18 17:58:15', '2023-11-18 17:58:15'),
 (3, 'Driver1', 'driver@gmail.com', 'M', '9876543211', '+91', '00000000', 2, '', 'Ama123ASDasdasd123', 'i', 0, '0', '2023-11-19 10:13:59', 0, '0.0', '0.0', '000000', '', '', 0, 1, 0, 0, '2023-11-19 10:13:59', '2023-11-19 10:13:59'),
-(5, 'Json Data', 'json@data.com', 'm', '9876543210', '+91', '00000000', 2, '', 'KsDvClz2cCZxG1rcYIfF', 'a', 2, '1', '2023-12-13 12:11:03', 0, '0.0', '0.0', '000000', 'profile/202312230846274627jdVekhj2et.jpg', '', 0, 0, 0, 1, '2023-12-13 12:11:03', '2023-12-18 10:27:24');
+(5, 'Json Data', 'json@data.com', 'm', '9876543210', '91', '00000000', 2, '', 'Tji491r1R2BVX4nJMTtZ', 'a', 3, '', '2023-12-13 12:11:03', 0, '0.0', '0.0', '000000', 'profile/20231230112728272838x4DAzEtE.jpg', '3', 4, 0, 0, 1, '2023-12-13 12:11:03', '2023-12-30 11:27:04');
 
 -- --------------------------------------------------------
 
@@ -608,6 +626,12 @@ ALTER TABLE `car_series`
   ADD PRIMARY KEY (`series_id`);
 
 --
+-- Indexes for table `chat_delete`
+--
+ALTER TABLE `chat_delete`
+  ADD PRIMARY KEY (`d_id`);
+
+--
 -- Indexes for table `chat_message`
 --
 ALTER TABLE `chat_message`
@@ -735,19 +759,25 @@ ALTER TABLE `booking_detail`
 -- AUTO_INCREMENT for table `car_brand`
 --
 ALTER TABLE `car_brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `car_model`
 --
 ALTER TABLE `car_model`
-  MODIFY `model_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `model_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `car_series`
 --
 ALTER TABLE `car_series`
-  MODIFY `series_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `series_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `chat_delete`
+--
+ALTER TABLE `chat_delete`
+  MODIFY `d_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `chat_message`
@@ -813,7 +843,7 @@ ALTER TABLE `user_address`
 -- AUTO_INCREMENT for table `user_cars`
 --
 ALTER TABLE `user_cars`
-  MODIFY `user_car_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `user_car_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `user_detail`

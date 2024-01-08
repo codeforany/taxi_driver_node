@@ -164,7 +164,7 @@ module.exports.controller = (app, io, socket_list) => {
                         return
                     }
 
-                    if (result.length > 0) {
+                    if (result.affectedRows > 0) {
                         res.json({ "status": "1", "message": "car deleted succfully" })
 
                     } else {
@@ -173,14 +173,11 @@ module.exports.controller = (app, io, socket_list) => {
                 })
             })
         }, "2")
-
     })
 
     app.post('/api/set_running_car', (req, res) => {
-
         helper.Dlog(req.body);
         var reqObj = req.body;
-
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["user_car_id"], () => {
                 db.query('UPDATE `user_cars` AS `ucd` ' +
@@ -229,9 +226,7 @@ module.exports.controller = (app, io, socket_list) => {
                         }
                     })
             })
-
         }, "2")
-
     })
 
     app.post('/api/brand_list', (req, res) => {

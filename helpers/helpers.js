@@ -9,7 +9,7 @@ const msg_server_internal_error = "Server Internal Error"
 module.exports = {
 
     ImagePath:() => {
-        return "http://192.168.1.3:3001/img/";
+        return "http://192.168.1.5:3001/img/";
     },
 
     ThrowHtmlError: (err, res) => {
@@ -120,8 +120,16 @@ module.exports = {
         return serverDateTime(format);
     },
 
+    serverMySqlDate: (date, format = 'YYYY-MM-DD HH:mm:ss' ) => {
+        return serverDateTime(date, format);
+    },
+
     serverYYYYMMDDHHmmss:()=>{
         return serverYYYYMMDDHHmmss();
+    },
+
+    isoDate:(date) => {
+        return moment.tz(date, 'YYYY-MM-DD HH:mm:ss', timezone_name ).toISOString();
     }
 
 }
@@ -129,6 +137,12 @@ module.exports = {
 
 function serverDateTime(format) {
     var jun = moment(new Date());
+    jun.tz(timezone_name).format();
+    return jun.format(format);
+}
+
+function serverDateTime(date,format) {
+    var jun = moment(date);
     jun.tz(timezone_name).format();
     return jun.format(format);
 }

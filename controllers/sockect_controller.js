@@ -23,7 +23,6 @@ module.exports.controller = (app, io, socket_list) => {
 
                     if(result.length > 0) {
                         socket_list['us_' + jsonObj.user_id] = { 'socket_id': client.id}
-
                         helper.Dlog(socket_list);
                         response = { "success": "true", "status": "1", "message": msg_success }
                     }else{

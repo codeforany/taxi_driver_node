@@ -16,6 +16,59 @@ module.exports.controller = (app, io, socket_list) => {
     const msg_invalidUser = "invalid username";
 
     //App Api
+
+    app.post('/api/support_user_list', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj =  req.body;
+        checkAccessToken( req.headers, res, (uObj) => {
+            helper.CheckParameterValid(res, reqObj, [ "socket_id"] , () => {
+
+                db.query('SELECT `ud`.`user_id`, "App Support" AS `name`, (CASE WHEN `ud`.`image` != "" THEN CONCAT("' + helper.ImagePath() + '", `ud`.`image` ) ELSE "" END ) AS `image`, "" AS `message`, 0 as `message_type`, NOW() AS `created_date`, 0 AS `base_count` FROM `user_detail` AS `ud` WHERE `ud`.`user_type` = ?;' +
+                
+                    'SELECT `ud`.`user_id`, `ud`.`name`, (CASE WHEN `ud`.`image` != "" THEN CONCAT("' + helper.ImagePath() + '", `ud`.`image` ) ELSE "" END ) AS `image`, IFNULL(`cm`.`message` , "" ) AS `message`, IFNULL(`cm`.`message_type` , 0 ) AS `message_type`, IFNULL(`cm`.`created_date` ,   NOW() ) AS `created_date`, IFNULL(`bc`.`base_count` , 0 ) AS `base_count` FROM `user_detail` AS `ud` ' +
+                    
+                    'INNER JOIN (' +
+
+                        'SELECT `created_date`, `message_type`, `message`, (CASE WHEN  `sender_id` = ? THEN `receiver_id` ELSE `sender_id` END) AS `user_id` FROM `chat_message` ' +
+                        'WHERE `chat_id` IN ( SELECT MAX(`chat_id`) FROM `chat_message` WHERE `status` < "3" AND ( `sender_id` = ? OR ( `receiver_id` = ? AND `status` > "-1") ) GROUP BY (CASE WHEN `sender_id` = ? THEN `receiver_id` ELSE `sender_id` END)  ) ' +
+
+                    ') AS `cm` ON `cm`.`user_id` = `ud`.`user_id` ' +
+                    'LEFT JOIN (SELECT count(`chat_id`) AS `base_count`, `sender_id` AS `user_id` FROM `chat_message` WHERE `receiver_id` = ? AND `status` = 0 GROUP BY `sender_id` ) AS `bc` ON `cm`.`user_id` = `bc`.`user_id` ' +
+                    "WHERE `ud`.`status` = 1 ORDER BY `cm`.`created_date` DESC", [ut_admin, uObj.user_id, uObj.user_id, uObj.user_id, uObj.user_id, uObj.user_id  ], (err, result) => {
+
+                    if(err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    }
+
+                    var adminArr = [];
+
+                    helper.Dlog(result[1]);
+                    if(result[0].length > 0) {
+
+                       adminArr = result[1].filter( (uObj) => result[0][0].user_id == uObj.user_id);
+                        
+                       // chat message not found admin user
+                        if (adminArr.length == 0) {
+                            //insert admin support
+
+                            result[1].unshift(result[0][0]);
+                        }
+
+                    }
+
+                    res.json({
+                        'status':"1",
+                        "payload": result[1]
+                    })
+
+
+                } )
+
+            } )
+        } )
+    } )
+
     app.post('/api/support_connect', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
@@ -161,6 +214,7 @@ module.exports.controller = (app, io, socket_list) => {
         })
 
     });
+
 
 }
 

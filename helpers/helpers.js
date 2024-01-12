@@ -141,11 +141,11 @@ function serverDateTime(format) {
     return jun.format(format);
 }
 
-function serverDateTime(date,format) {
-    var jun = moment(date);
-    jun.tz(timezone_name).format();
-    return jun.format(format);
-}
+// function serverDateTime(date,format) {
+//     var jun = moment(date);
+//     jun.tz(timezone_name).format();
+//     return jun.format(format);
+// }
 
 function Dlog(log) {
     if (app_debug_mode) {

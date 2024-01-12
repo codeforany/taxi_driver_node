@@ -13,8 +13,8 @@ module.exports.controller = (app, io, socket_list) => {
             helper.Dlog('UpdateSocket :- ' + data);
             var jsonObj = JSON.parse(data);
 
-            helper.CheckParameterValidSocket(client, "UpdateSocket",  jsonObj, ['user_id'], () => {
-                db.query("SELECT `user_id`, `email` FROM `user_detail` WHERE `user_id` = ?;", [jsonObj.user_id], (err, result) => {
+            helper.CheckParameterValidSocket(client, "UpdateSocket",  jsonObj, ["access_token"], () => {
+                db.query("SELECT `user_id`, `email` FROM `user_detail` WHERE `auth_token` = ? ;", [jsonObj.access_token], (err, result) => {
 
                     if(err) {
                         helper.ThrowSocketError(err, client, "UpdateSocket")
@@ -22,7 +22,7 @@ module.exports.controller = (app, io, socket_list) => {
                     }
 
                     if(result.length > 0) {
-                        socket_list['us_' + jsonObj.user_id] = { 'socket_id': client.id}
+                        socket_list['us_' + result[0].user_id] = { 'socket_id': client.id}
                         helper.Dlog(socket_list);
                         response = { "success": "true", "status": "1", "message": msg_success }
                     }else{

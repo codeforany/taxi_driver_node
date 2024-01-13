@@ -100,6 +100,20 @@ module.exports.controller = (app, io, socket_list) => {
                             }
 
                             if (result[0].length > 0) {
+
+                                db.query("UPDATE `chat_message` SET `status` = 1, `modify_date` = NOW() WHERE `sender_id` = ? AND `receiver_id` = ? AND `status` = 0 ", [reqObj.user_id, uObj.user_id], (err, uResult) => {
+                                    if (err) {
+                                        helper.ThrowHtmlError(err);
+                                        return
+                                    }
+
+                                    if(uResult.affectedRows > 0) {
+                                        helper.Dlog("User base reset done");
+                                    }else{
+                                        helper.Dlog("User base reset fail");
+                                    }
+                                })
+
                                 res.json(
                                     {
                                         "status": "1",
@@ -172,15 +186,16 @@ module.exports.controller = (app, io, socket_list) => {
 
                 var createdDate = helper.serverYYYYMMDDHHmmss()
 
-                db.query('INSERT INTO `chat_message` (`sender_id`,`receiver_id`,`message`, `message_type` ) VALUES (?,?,?, ?) ', [uObj.user_id, reqObj.receiver_id, reqObj.message, "0"], (err, result) => {
+                db.query('INSERT INTO `chat_message` (`sender_id`,`receiver_id`,`message`, `message_type` ) VALUES (?,?,?, ?) ;' +
+                    'SELECT `user_id`, `name`, (CASE WHEN `image` != "" THEN CONCAT("' + helper.ImagePath() + '", `image` ) ELSE "" END ) AS `image`, "" AS `message`, 0 as `message_type`, NOW() AS `created_date`, 0 AS `base_count`  FROM `user_detail` WHERE `user_id` = ? ; ', [uObj.user_id, reqObj.receiver_id, reqObj.message, "0", reqObj.receiver_id ], (err, result) => {
                     if (err) {
                         helper.ThrowHtmlError(err, res);
                         return;
                     }
 
-                    if (result) {
+                    if (result[0]) {
                         var dataMessage = {
-                            "chat_id": result.insertId,
+                            "chat_id": result[0].insertId,
                             "sender_id": uObj.user_id, "receiver_id": parseInt(reqObj.receiver_id), "message": reqObj.message, "created_date": helper.isoDate(createdDate), "message_type": 0,
                         }
                         res.json({
@@ -193,7 +208,7 @@ module.exports.controller = (app, io, socket_list) => {
                         var receiverSocket = socket_list['us_' + reqObj.receiver_id];
                         if (receiverSocket && io.sockets.sockets.get(receiverSocket.socket_id)) {
                             io.sockets.sockets.get(receiverSocket.socket_id).emit("support_message", {
-                                "status": "1", "payload": [dataMessage]
+                                "status": "1", "payload": [dataMessage], "user_info": result[1].length > 0 ? result[1][0] : {}
                             })
 
                             helper.Dlog("receiverSocket emit done")

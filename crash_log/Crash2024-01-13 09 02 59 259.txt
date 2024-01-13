@@ -1,0 +1,11 @@
+TypeError: format.match is not a function
+    at makeFormatFunction (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/node_modules/moment/moment.js:497:28)
+    at formatMoment (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/node_modules/moment/moment.js:529:40)
+    at Moment.format (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/node_modules/moment/moment.js:3994:22)
+    at serverDateTime (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/helpers/helpers.js:141:16)
+    at Object.serverMySqlDate (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/helpers/helpers.js:124:16)
+    at /Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/controllers/support_controller.js:89:52
+    at Query.<anonymous> (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/helpers/db_helpers.js:67:24)
+    at Query.<anonymous> (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/node_modules/mysql/lib/Connection.js:526:10)
+    at Query._callback (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/node_modules/mysql/lib/Connection.js:488:16)
+    at Sequence.end (/Users/codeforany/Desktop/CodeForAny/Node/taxi_app_node/node_modules/mysql/lib/protocol/sequences/Sequence.js:83:24)

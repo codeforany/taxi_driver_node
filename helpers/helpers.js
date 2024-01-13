@@ -121,7 +121,7 @@ module.exports = {
     },
 
     serverMySqlDate: (date, format = 'YYYY-MM-DD HH:mm:ss' ) => {
-        return serverDateTime(date, format);
+        return serverDateTimeFormat(date, format);
     },
 
     serverYYYYMMDDHHmmss:()=>{
@@ -141,11 +141,11 @@ function serverDateTime(format) {
     return jun.format(format);
 }
 
-// function serverDateTime(date,format) {
-//     var jun = moment(date);
-//     jun.tz(timezone_name).format();
-//     return jun.format(format);
-// }
+function serverDateTimeFormat(date,format) {
+    var jun = moment(date);
+    jun.tz(timezone_name).format();
+    return jun.format(format);
+}
 
 function Dlog(log) {
     if (app_debug_mode) {

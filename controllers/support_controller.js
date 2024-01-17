@@ -187,7 +187,7 @@ module.exports.controller = (app, io, socket_list) => {
                 var createdDate = helper.serverYYYYMMDDHHmmss()
 
                 db.query('INSERT INTO `chat_message` (`sender_id`,`receiver_id`,`message`, `message_type` ) VALUES (?,?,?, ?) ;' +
-                    'SELECT `user_id`, `name`, (CASE WHEN `image` != "" THEN CONCAT("' + helper.ImagePath() + '", `image` ) ELSE "" END ) AS `image`, "" AS `message`, 0 as `message_type`, NOW() AS `created_date`, 0 AS `base_count`  FROM `user_detail` WHERE `user_id` = ? ; ', [uObj.user_id, reqObj.receiver_id, reqObj.message, "0", reqObj.receiver_id ], (err, result) => {
+                    'SELECT `user_id`, `name`, (CASE WHEN `image` != "" THEN CONCAT("' + helper.ImagePath() + '", `image` ) ELSE "" END ) AS `image`, "" AS `message`, 0 as `message_type`, NOW() AS `created_date`, 0 AS `base_count`  FROM `user_detail` WHERE `user_id` = ? ; ', [uObj.user_id, reqObj.receiver_id, reqObj.message, "0", uObj.user_id ], (err, result) => {
                     if (err) {
                         helper.ThrowHtmlError(err, res);
                         return;

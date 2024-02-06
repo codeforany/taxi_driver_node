@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 08, 2024 at 05:23 AM
+-- Generation Time: Feb 05, 2024 at 06:25 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -90,6 +90,13 @@ CREATE TABLE `booking_detail` (
   `status` int(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `booking_detail`
+--
+
+INSERT INTO `booking_detail` (`booking_id`, `user_id`, `pickup_lat`, `pickup_long`, `pickup_address`, `drop_lat`, `drop_long`, `drop_address`, `pickup_date`, `service_id`, `price_id`, `driver_id`, `user_car_id`, `request_driver_id`, `total_distance`, `accpet_time`, `otp_code`, `accpet_driver_id`, `payment_id`, `start_time`, `stop_time`, `taxi_amout`, `duration`, `est_total_distance`, `est_duration`, `toll_tax`, `is_toll_accpet`, `tip_amount`, `booking_status`, `created_date`, `is_driver_cancel`, `driver_rating`, `driver_comment`, `user_rating`, `user_comment`, `status`) VALUES
+(1, '6', '21.21213402948101', '72.82620765222546', 'Katargam, , Katargam, Surat, GJ, 395004', '21.19927164872126', '72.84239580711711', 'Ring Road, Ring Road, Railway Station Area, Surat, GJ, 395003', '2024-02-05 10:52:28', 1, 1, '5', '', '5', '0.0', NULL, '000000', '', '8', NULL, NULL, '0', '0', '2.65', '2.3800000000000003', '0', '0', '0', 0, '2024-02-05 10:52:28', '', '0', '', '0', '', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -175,6 +182,14 @@ CREATE TABLE `chat_delete` (
   `created_date` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `chat_delete`
+--
+
+INSERT INTO `chat_delete` (`d_id`, `user_id`, `receiver_id`, `created_date`) VALUES
+(1, 3, 6, '2024-01-17 09:17:30'),
+(2, 6, 3, '2024-01-17 09:17:21');
+
 -- --------------------------------------------------------
 
 --
@@ -189,9 +204,50 @@ CREATE TABLE `chat_message` (
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
   `receiver_date` datetime DEFAULT NULL,
   `modify_date` datetime NOT NULL DEFAULT current_timestamp(),
-  `status` int(1) NOT NULL DEFAULT 1 COMMENT '0 = send, 1= receive, 2= view , 3 = sender delete, 4 = receiver delete, 5 = all delete',
+  `status` int(1) NOT NULL DEFAULT 0 COMMENT '0 = send, 1= receive, 2= view , 3 = sender delete, 4 = receiver delete, 5 = all delete',
   `message_type` int(1) NOT NULL DEFAULT 1 COMMENT '0 = text, 1 = file'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chat_message`
+--
+
+INSERT INTO `chat_message` (`chat_id`, `sender_id`, `receiver_id`, `message`, `created_date`, `receiver_date`, `modify_date`, `status`, `message_type`) VALUES
+(23, 6, 3, 'Hi', '2024-01-12 10:44:24', NULL, '2024-01-13 08:58:16', 1, 0),
+(24, 6, 3, '1', '2024-01-12 10:50:38', NULL, '2024-01-13 08:58:16', 1, 0),
+(25, 6, 3, '2', '2024-01-12 10:51:19', NULL, '2024-01-13 08:58:16', 1, 0),
+(26, 3, 6, '3', '2024-01-12 10:51:55', NULL, '2024-01-13 09:09:19', 1, 0),
+(27, 3, 6, '4', '2024-01-12 10:52:00', NULL, '2024-01-13 09:09:19', 1, 0),
+(28, 3, 6, '5', '2024-01-13 09:09:40', NULL, '2024-01-13 09:09:50', 1, 0),
+(29, 3, 6, '6', '2024-01-13 09:09:55', NULL, '2024-01-13 09:10:12', 1, 0),
+(30, 3, 6, '3', '2024-01-13 09:10:02', NULL, '2024-01-13 09:10:12', 1, 0),
+(31, 6, 3, '4', '2024-01-13 09:10:20', NULL, '2024-01-13 09:10:24', 1, 0),
+(32, 6, 3, '5', '2024-01-13 09:10:30', NULL, '2024-01-13 09:10:35', 1, 0),
+(33, 6, 3, '7', '2024-01-13 09:10:39', NULL, '2024-01-13 09:11:31', 1, 0),
+(34, 6, 3, '7', '2024-01-13 09:10:47', NULL, '2024-01-13 09:11:31', 1, 0),
+(35, 6, 3, '6', '2024-01-13 09:10:53', NULL, '2024-01-13 09:11:31', 1, 0),
+(36, 6, 3, '8', '2024-01-13 09:11:22', NULL, '2024-01-13 09:11:31', 1, 0),
+(37, 3, 6, '10', '2024-01-13 09:11:35', NULL, '2024-01-13 09:11:39', 1, 0),
+(38, 6, 3, '12', '2024-01-13 09:11:43', NULL, '2024-01-16 09:44:48', 1, 0),
+(39, 3, 6, 'Hi', '2024-01-16 09:45:02', NULL, '2024-01-16 09:45:35', 1, 0),
+(40, 6, 3, 'Good', '2024-01-16 09:45:47', NULL, '2024-01-16 09:46:14', 1, 0),
+(41, 3, 6, '1234', '2024-01-16 09:45:55', NULL, '2024-01-16 09:46:16', 1, 0),
+(42, 6, 3, '1', '2024-01-17 09:17:37', NULL, '2024-01-17 09:18:00', 1, 0),
+(43, 3, 6, '2', '2024-01-17 09:18:04', NULL, '2024-01-17 09:24:08', 1, 0),
+(44, 3, 6, '2', '2024-01-17 09:19:37', NULL, '2024-01-17 09:24:08', 1, 0),
+(45, 3, 6, '3', '2024-01-17 09:23:15', NULL, '2024-01-17 09:24:08', 1, 0),
+(46, 3, 6, '4', '2024-01-17 09:23:28', NULL, '2024-01-17 09:24:08', 1, 0),
+(47, 3, 6, '5', '2024-01-17 09:24:14', NULL, '2024-01-17 09:24:27', 1, 0),
+(48, 6, 3, 'Hi', '2024-01-17 09:24:34', NULL, '2024-01-17 09:24:42', 1, 0),
+(49, 6, 3, '123', '2024-01-17 09:24:47', NULL, '2024-01-17 09:25:11', 1, 0),
+(50, 6, 3, '12', '2024-01-17 09:24:53', NULL, '2024-01-17 09:25:11', 1, 0),
+(51, 3, 6, '45', '2024-01-17 09:25:15', NULL, '2024-01-17 09:28:31', 1, 0),
+(52, 3, 6, '456', '2024-01-17 09:25:30', NULL, '2024-01-17 09:28:31', 1, 0),
+(53, 3, 6, '13', '2024-01-17 09:25:46', NULL, '2024-01-17 09:28:31', 1, 0),
+(54, 3, 6, '16', '2024-01-17 09:27:53', NULL, '2024-01-17 09:28:31', 1, 0),
+(55, 6, 3, '789', '2024-01-17 09:28:36', NULL, '2024-01-17 09:28:44', 1, 0),
+(56, 6, 3, '423', '2024-01-17 09:28:41', NULL, '2024-01-17 09:28:44', 1, 0),
+(57, 3, 6, 'ABCD', '2024-01-17 09:28:53', NULL, '2024-01-17 09:28:53', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -263,11 +319,13 @@ CREATE TABLE `driver_document` (
 
 CREATE TABLE `payment_detail` (
   `payment_id` int(11) NOT NULL,
-  `card_id` int(11) NOT NULL DEFAULT 0,
+  `card_id` varchar(11) NOT NULL DEFAULT '',
   `payment_type` int(1) NOT NULL DEFAULT 1,
   `amt` varchar(25) NOT NULL DEFAULT '0',
   `discount_amt` varchar(25) NOT NULL DEFAULT '0',
   `driver_amt` varchar(25) NOT NULL DEFAULT '0',
+  `tax_amt` double NOT NULL DEFAULT 0,
+  `ride_commission` double NOT NULL DEFAULT 0,
   `plusminus_amt` varchar(20) NOT NULL DEFAULT '0',
   `transaction_id` varchar(50) NOT NULL DEFAULT '',
   `created_date` datetime NOT NULL DEFAULT current_timestamp(),
@@ -279,6 +337,20 @@ CREATE TABLE `payment_detail` (
   `pay_amt` varchar(25) NOT NULL DEFAULT '0',
   `front_pay_amount` varchar(25) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `payment_detail`
+--
+
+INSERT INTO `payment_detail` (`payment_id`, `card_id`, `payment_type`, `amt`, `discount_amt`, `driver_amt`, `tax_amt`, `ride_commission`, `plusminus_amt`, `transaction_id`, `created_date`, `modify_date`, `payment_date`, `status`, `pay_card_amt`, `pay_wallet_amt`, `pay_amt`, `front_pay_amount`) VALUES
+(1, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:23:10', '2024-02-05 10:23:10', NULL, 0, '0', '0', '0', '0'),
+(2, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:25:39', '2024-02-05 10:25:39', NULL, 0, '0', '0', '0', '0'),
+(3, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:27:11', '2024-02-05 10:27:11', NULL, 0, '0', '0', '0', '0'),
+(4, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:28:06', '2024-02-05 10:28:06', NULL, 0, '0', '0', '0', '0'),
+(5, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:31:38', '2024-02-05 10:31:38', NULL, 0, '0', '0', '0', '0'),
+(6, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:32:49', '2024-02-05 10:32:49', NULL, 0, '0', '0', '0', '0'),
+(7, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:50:37', '2024-02-05 10:50:37', NULL, 0, '0', '0', '0', '0'),
+(8, '', 1, '6', '0', '3.02', 0.643, 2.34, '0', '', '2024-02-05 10:52:28', '2024-02-05 10:52:28', NULL, 0, '0', '0', '0', '0');
 
 -- --------------------------------------------------------
 
@@ -354,7 +426,7 @@ CREATE TABLE `service_detail` (
 
 INSERT INTO `service_detail` (`service_id`, `service_name`, `seat`, `color`, `icon`, `top_icon`, `gender`, `status`, `created_date`, `modify_date`, `description`) VALUES
 (1, 'GO RED', '5', '000000', 'service/20231117094101411CpBGrGRXSz.png', 'service/202311170947354735KOWhgBN75O.png', 'M,F', 1, '2023-11-16 10:32:40', '2023-11-17 09:47:35', 'GO123'),
-(2, 'GO GREEN', '4', '00ff00', 'service/202311211455255525bV9LqKbA3I.png', 'service/202311211455255525foO2cKCPbd.png', 'M,F', 0, '2023-11-21 14:55:25', '2023-11-21 14:55:25', 'GO');
+(2, 'GO GREEN', '4', '00ff00', 'service/202311211455255525bV9LqKbA3I.png', 'service/202311211455255525foO2cKCPbd.png', 'M,F', 1, '2023-11-21 14:55:25', '2023-11-21 14:55:25', 'GO');
 
 -- --------------------------------------------------------
 
@@ -424,7 +496,7 @@ CREATE TABLE `user_cars` (
 
 INSERT INTO `user_cars` (`user_car_id`, `user_id`, `series_id`, `car_number`, `car_image`, `status`, `created_date`, `modify_date`) VALUES
 (1, 5, '1', 'AA123', 'car/202312230847484748K2WbhjR4Og.jpg', 1, '2023-12-23 08:47:48', '2023-12-23 08:47:48'),
-(2, 5, '2', '!@$12345', 'car/202312230849274927F6CGMLWl3j.jpg', 2, '2023-12-23 08:49:27', '2023-12-23 08:49:27'),
+(2, 3, '1', '!@$12345', 'car/202312230849274927F6CGMLWl3j.jpg', 1, '2023-12-23 08:49:27', '2023-12-23 08:49:27'),
 (3, 5, '1', 'XY123456', 'car/2024010410072372367He0c52zW.jpg', 1, '2024-01-04 10:07:23', '2024-01-04 10:07:23'),
 (4, 5, '3', 'NT123456', 'car/202401041010231023LwqVYUHVHK.jpg', 1, '2024-01-04 10:10:23', '2024-01-04 10:10:23');
 
@@ -468,10 +540,11 @@ CREATE TABLE `user_detail` (
 --
 
 INSERT INTO `user_detail` (`user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `password`, `user_type`, `push_token`, `auth_token`, `device_source`, `zone_id`, `select_service_id`, `expiry_date`, `is_block`, `lati`, `longi`, `reset_code`, `image`, `car_id`, `seat`, `is_online`, `is_request_send`, `status`, `created_date`, `modify_date`) VALUES
-(1, 'admin', 'admin@admin.com', '', '', '', '123456', 4, '', 'QEqBsCzMfX691BoqFzrB', 'i', 0, '0', '2023-11-11 10:11:17', 0, '0.0', '0.0', '000000', '', '', 0, 0, 0, 1, '2023-11-11 10:11:17', '2023-11-12 10:37:42'),
+(1, 'admin', 'admin@admin.com', '', '', '', '123456', 4, '', 'RhswkFnGgiiMK9inBiwj', 'i', 0, '0', '2023-11-11 10:11:17', 0, '0.0', '0.0', '000000', '', '', 0, 0, 0, 1, '2023-11-11 10:11:17', '2024-02-02 10:29:51'),
 (2, 'User1', 'user@gmail.com', 'M', '9876543212', '+91', '00000000', 1, '', 'asdaasdasdasdasdasd', 'i', 0, '0', '2023-11-18 17:58:15', 0, '0.0', '0.0', '000000', '', '', 0, 1, 0, 0, '2023-11-18 17:58:15', '2023-11-18 17:58:15'),
-(3, 'Driver1', 'driver@gmail.com', 'M', '9876543211', '+91', '00000000', 2, '', 'Ama123ASDasdasd123', 'i', 0, '0', '2023-11-19 10:13:59', 0, '0.0', '0.0', '000000', '', '', 0, 1, 0, 0, '2023-11-19 10:13:59', '2023-11-19 10:13:59'),
-(5, 'Json Data', 'json@data.com', 'm', '9876543210', '91', '00000000', 2, '', 'Tji491r1R2BVX4nJMTtZ', 'a', 3, '', '2023-12-13 12:11:03', 0, '0.0', '0.0', '000000', 'profile/20231230112728272838x4DAzEtE.jpg', '3', 4, 0, 0, 1, '2023-12-13 12:11:03', '2023-12-30 11:27:04');
+(3, 'Driver1', 'driver@gmail.com', 'm', '9876543211', '+91', '00000000', 2, '', 'BD3GAEcB3rPd9BgGV13l', 'i', 2, '0,1', '2023-11-19 10:13:59', 0, '21.1702', '72.8311', '000000', 'profile/Invalid dateSdMzuZf7YR.jpg', '2', 0, 1, 0, 1, '2023-11-19 10:13:59', '2024-01-16 08:45:56'),
+(5, 'Json Data', 'json@data.com', 'm', '9876543210', '91', '00000000', 2, '', 'Tji491r1R2BVX4nJMTtZ', 'a', 2, '0,1', '2023-12-13 12:11:03', 0, '21.1722', '72.8611', '000000', 'profile/20231230112728272838x4DAzEtE.jpg', '1', 4, 1, 0, 1, '2023-12-13 12:11:03', '2023-12-30 11:27:04'),
+(6, 'User1', '', '', '9876543210', '+91', '00000000', 1, '', 'mxVMwexPIg9nHAzV5E4G', 'i', 0, '0', '2024-01-12 02:52:17', 0, '0.0', '0.0', '000000', 'profile/2024011410482648268CJ2mtvzEX.jpg', '', 0, 0, 0, 1, '2024-01-12 02:52:17', '2024-02-05 09:40:33');
 
 -- --------------------------------------------------------
 
@@ -575,6 +648,13 @@ CREATE TABLE `zone_wise_cars_service` (
   `status` int(1) NOT NULL DEFAULT 1 COMMENT '1 = active,',
   `created_date` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `zone_wise_cars_service`
+--
+
+INSERT INTO `zone_wise_cars_service` (`zone_service_id`, `zone_doc_id`, `user_car_id`, `service_provide`, `expiry_date`, `status_message`, `status`, `created_date`) VALUES
+(1, 1, 1, 1, '2026-02-10 10:36:51', '', 1, '2024-02-05 10:40:33');
 
 -- --------------------------------------------------------
 
@@ -753,7 +833,7 @@ ALTER TABLE `bank_detail`
 -- AUTO_INCREMENT for table `booking_detail`
 --
 ALTER TABLE `booking_detail`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `car_brand`
@@ -777,13 +857,13 @@ ALTER TABLE `car_series`
 -- AUTO_INCREMENT for table `chat_delete`
 --
 ALTER TABLE `chat_delete`
-  MODIFY `d_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `d_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `chat_message`
 --
 ALTER TABLE `chat_message`
-  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `crad_payment`
@@ -807,7 +887,7 @@ ALTER TABLE `driver_document`
 -- AUTO_INCREMENT for table `payment_detail`
 --
 ALTER TABLE `payment_detail`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `price_detail`
@@ -849,7 +929,7 @@ ALTER TABLE `user_cars`
 -- AUTO_INCREMENT for table `user_detail`
 --
 ALTER TABLE `user_detail`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `user_notification`
@@ -879,7 +959,7 @@ ALTER TABLE `zone_list`
 -- AUTO_INCREMENT for table `zone_wise_cars_service`
 --
 ALTER TABLE `zone_wise_cars_service`
-  MODIFY `zone_service_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `zone_service_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `zone_wise_doc_link`

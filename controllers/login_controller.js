@@ -66,6 +66,48 @@ module.exports.controller = (app, io, socket_list) => {
         })
     })
 
+    app.post('/api/static_data', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj = req.body;
+        helper.CheckParameterValid(res, reqObj, ["last_call_time"], () => {
+
+            var lastCallTime = reqObj.last_call_time
+
+            if (!lastCallTime || lastCallTime == "") {
+                lastCallTime = "2023-08-01 00:00:00"
+            }
+
+            db.query(
+                "SELECT * FROM `zone_list` WHERE `modify_date` >= ? ;" +
+                'SELECT `service_id`, `service_name`, `seat`, `color`,  (CASE WHEN `icon` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `icon`  ) ELSE "" END) AS `icon`,  (CASE WHEN `top_icon` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `top_icon`  ) ELSE "" END) AS `top_icon`, `gender`, `status`, `created_date`, `modify_date`, `description` FROM `service_detail` WHERE `modify_date` >= ? ;' +
+                "SELECT * FROM `price_detail` WHERE `modify_date` >= ? ;" +
+                "SELECT * FROM `document` WHERE `modify_date` >= ? ;" +
+                "SELECT * FROM `zone_document` WHERE `modify_date` >= ? ;",
+
+                [lastCallTime, lastCallTime, lastCallTime, lastCallTime, lastCallTime,], (err, result) => {
+                    if (err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    }
+
+                    res.json(
+                        {
+                            "status": "1",
+                            "payload":
+
+                            {
+                                "zone_list": result[0],
+                                "service_detail": result[1],
+                                "price_detail": result[2],
+                                "document": result[3],
+                                "zone_document": result[4],
+                            }
+                        })
+                }
+            )
+        })
+    })
+
     function getUserDetailUserId(user_id, callback) {
         db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  (CASE WHEN `image` != ""  THEN CONCAT( "' + helper.ImagePath() + '" , `image`  ) ELSE "" END) AS `image`, `status`, `zone_id`, `select_service_id`  FROM `user_detail` WHERE  `user_id` = ? ', [user_id], (err, result) => {
 
@@ -81,6 +123,114 @@ module.exports.controller = (app, io, socket_list) => {
             }
         })
     }
+
+    app.post('api/driver_online', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj = req.body
+        checkAccessToken(req.headers, res, (uObj) => {
+            helper.CheckParameterValid(res, reqObj, ['is_online'], () => {
+                db.query(
+                    "SELECT FROM  `user_detail` AS `ud`" +
+                    "LEFT JOIN `user_cars` AS `ucd` ON `ud`.`car_id` = `ucd`.`user_car_id` " +
+                    "LEFT JOIN `zone_document` AS `zd` ON `ud`.`zone_id` = `zd`.`zone_id` " +
+                    "LEFT JOIN `zone_wise_cars_service` AS `zwcs` ON `zwcs`.`user_car_id` = `ucd`.`user_car_id` AND `zwcs`.`zone_doc_id` = `zd`.`zone_doc_id` AND `zwcs`.`status` = 1 AND `zwcs`.`service_provide` = 1 " +
+                    "WHERE `ud`.`user_id` = ? AND `ud`.`user_type` = ? ORDER BY `zwcs`.`zone_service_id` DESC", [uObj.user_id, ut_driver], (err, result) => {
+                        if (err) {
+                            helper.ThrowHtmlError(err, res);
+                            return
+                        }
+
+                        if (result.length > 0) {
+
+                            if (reqObj.is_online == 0) {
+                                //Offline
+                                if (result[0].status == 2) {
+                                    //Not Offline Driver ride is started
+                                    res.json({
+                                        "status": "0",
+                                        "message": "please complete ride after offline !"
+                                    })
+                                    return
+                                }
+                            } else {
+                                //Online
+
+                                if (result[0].status == 0 || result[0].status == -1) {
+                                    res.json({
+                                        "status": "0",
+                                        "message": "Your account not approved"
+                                    })
+                                    return
+                                }
+                                if (result[0].car_id == undefined || result[0].car_id == "") {
+                                    res.json({
+                                        "status": "0",
+                                        "message": "Not select on ride car!"
+                                    })
+                                    return
+                                }
+                                if (result[0].car_id != undefined && result[0].car_id != "" && result[0].car_status != 1) {
+                                    res.json({
+                                        "status": "0",
+                                        "message": "Not select on ride car!"
+                                    })
+                                    return
+                                }
+
+                                if (result[0].zone_service_id == undefined || result[0].zone_service_id == "") {
+                                    res.json({
+                                        "status": "0",
+                                        "message": "Please select on ride car provide service"
+                                    })
+                                    return
+                                }
+                            }
+
+                            var status_condition = "="
+                            if (reqObj.is_online == 1) {
+                                status_condition = ">="
+                            }
+
+                            db.query("UPDATE `user_detail` SET `is_online` = ? WHERE `user_id` = ? AND `status` " + status_condition + " ?", [reqObj.is_online, uObj.user_id, 1], (err, result) => {
+                                if (err) {
+                                    helper.ThrowHtmlError(err, res);
+                                    return
+                                }
+
+                                if (result.affectedRows > 0) {
+                                    var msg = "Offline"
+
+                                    if (reqObj.is_online == 1) {
+                                        msg = "Online"
+                                    }
+
+                                    res.json({
+                                        'status': '1',
+                                        'is_online': reqObj.is_online,
+                                        'message': msg
+                                    })
+
+                                } else {
+                                    res.json({
+                                        'status': '0',
+                                        'message': msg_fail
+                                    })
+                                }
+                            })
+
+                        } else {
+                            res.json({
+                                'status': '0',
+                                'message': msg_fail
+                            })
+                        }
+
+
+                    }
+                )
+            })
+        })
+    })
 
     app.post('/api/admin/login', (req, res) => {
         helper.Dlog(req.body);
@@ -225,34 +375,34 @@ module.exports.controller = (app, io, socket_list) => {
 
     app.post('/api/service_and_zone_list', (req, res) => {
         helper.Dlog(req.body);
-        var reqObj =  req.body;
+        var reqObj = req.body;
 
-        checkAccessToken(req.headers, res,  (uObj) => {
+        checkAccessToken(req.headers, res, (uObj) => {
             db.query("SELECT `zl`.`zone_id`, `zl`.`zone_name` FROM `zone_list` AS `zl` " +
-            "INNER JOIN `price_detail` AS `pd` ON `pd`.`zone_id` = `zl`.`zone_id` AND `pd`.`status` = 1 " +
-            "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `pd`.`service_id` AND `sd`.`status` = 1 AND `zl`.`status` = 1 " +
-            "GROUP BY `zl`.`zone_id` ;" +
-            "SELECT `service_id`, `service_name`, `seat`, `color`, ( CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon` ) ELSE '' END ) AS `icon`, " +
-            " (CASE WHEN `top_icon` != '' THEN CONCAT('" +  helper.ImagePath() + "',`top_icon`) ELSE '' END) AS `top_icon` FROM `service_detail` " +
-            "WHERE `status` = 1 ", [], (err, result) => {
-                if(err) {
-                    helper.ThrowHtmlError(err, res);
-                    return;
-                }
-
-                res.json({
-                    'status': '1',
-                    'payload': {
-                        'zone_list' : result[0],
-                        'service_list' : result[1]
+                "INNER JOIN `price_detail` AS `pd` ON `pd`.`zone_id` = `zl`.`zone_id` AND `pd`.`status` = 1 " +
+                "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `pd`.`service_id` AND `sd`.`status` = 1 AND `zl`.`status` = 1 " +
+                "GROUP BY `zl`.`zone_id` ;" +
+                "SELECT `service_id`, `service_name`, `seat`, `color`, ( CASE WHEN `icon` != '' THEN CONCAT('" + helper.ImagePath() + "', `icon` ) ELSE '' END ) AS `icon`, " +
+                " (CASE WHEN `top_icon` != '' THEN CONCAT('" + helper.ImagePath() + "',`top_icon`) ELSE '' END) AS `top_icon` FROM `service_detail` " +
+                "WHERE `status` = 1 ", [], (err, result) => {
+                    if (err) {
+                        helper.ThrowHtmlError(err, res);
+                        return;
                     }
+
+                    res.json({
+                        'status': '1',
+                        'payload': {
+                            'zone_list': result[0],
+                            'service_list': result[1]
+                        }
+                    })
                 })
-            } ) 
         })
 
 
-    } )
-    
+    })
+
 
     app.post('/api/address_add', (req, res) => {
         helper.Dlog(req.body)

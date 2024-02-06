@@ -261,7 +261,7 @@ module.exports.controller = (app, io, socket_list) => {
                 // Tracking OP
 
                 db.query("UPDATE `user_detail` SET `lati` = ? , `longi` = ? WHERE `user_id` = ? AND `user_type` = ? ", [
-                    uObj.user_id, ut_driver
+                    reqObj.latitude, reqObj.longitude ,  uObj.user_id, ut_driver
                 ], (err, result) => {
                     if (err) {
                         helper.ThrowHtmlError(err, res);

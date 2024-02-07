@@ -124,22 +124,25 @@ module.exports.controller = (app, io, socket_list) => {
         })
     }
 
-    app.post('api/driver_online', (req, res) => {
+    app.post('/api/driver_online', (req, res) => {
         helper.Dlog(req.body);
         var reqObj = req.body
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ['is_online'], () => {
+
                 db.query(
-                    "SELECT FROM  `user_detail` AS `ud`" +
+                    "SELECT `ud`.`user_id`, `ud`.`car_id`, `ud`.`status`, `ucd`.`status` AS `car_status`, `zwcs`.`zone_service_id`  FROM  `user_detail` AS `ud` " +
                     "LEFT JOIN `user_cars` AS `ucd` ON `ud`.`car_id` = `ucd`.`user_car_id` " +
                     "LEFT JOIN `zone_document` AS `zd` ON `ud`.`zone_id` = `zd`.`zone_id` " +
-                    "LEFT JOIN `zone_wise_cars_service` AS `zwcs` ON `zwcs`.`user_car_id` = `ucd`.`user_car_id` AND `zwcs`.`zone_doc_id` = `zd`.`zone_doc_id` AND `zwcs`.`status` = 1 AND `zwcs`.`service_provide` = 1 " +
-                    "WHERE `ud`.`user_id` = ? AND `ud`.`user_type` = ? ORDER BY `zwcs`.`zone_service_id` DESC", [uObj.user_id, ut_driver], (err, result) => {
+                    "LEFT JOIN `zone_wise_cars_service` AS `zwcs` ON `zwcs`.`user_car_id` = `ucd`.`user_car_id` AND `zwcs`.`zone_doc_id` = `zd`.`zone_doc_id` AND `zwcs`.`status` = '1' AND `zwcs`.`service_provide` = '1' " +
+                    "WHERE `ud`.`user_id` = ? AND `ud`.`user_type` = ? ORDER BY`zwcs`.`zone_service_id` DESC ", [uObj.user_id, ut_driver], (err, result) => {
                         if (err) {
                             helper.ThrowHtmlError(err, res);
                             return
                         }
+                        
 
+                       
                         if (result.length > 0) {
 
                             if (reqObj.is_online == 0) {
@@ -156,6 +159,7 @@ module.exports.controller = (app, io, socket_list) => {
                                 //Online
 
                                 if (result[0].status == 0 || result[0].status == -1) {
+                                    
                                     res.json({
                                         "status": "0",
                                         "message": "Your account not approved"
@@ -198,10 +202,10 @@ module.exports.controller = (app, io, socket_list) => {
                                 }
 
                                 if (result.affectedRows > 0) {
-                                    var msg = "Offline"
+                                    var msg = "You're Offline"
 
                                     if (reqObj.is_online == 1) {
-                                        msg = "Online"
+                                        msg = "You're Online"
                                     }
 
                                     res.json({
@@ -677,87 +681,6 @@ module.exports.controller = (app, io, socket_list) => {
 
             })
         }, ut_driver)
-
-    })
-
-    app.post('/api/driver_online', (req, res) => {
-        helper.Dlog(req.body)
-        var reqObj = req.body;
-
-        checkAccessToken(req.headers, res, (uObj) => {
-            helper.CheckParameterValid(res, reqObj, ["is_online"], () => {
-
-
-                db.query("SELECT `ud`.`car_id`, `ud`.`status`, `uc`.`status` AS `car_status`, `zwcs`.`zone_service_id`  FROM `user_detail` AS `ud` " +
-                    "LEFT JOIN`user_cars` AS`uc` ON`ud`.`car_id` = `uc`.`user_car_id` " +
-                    "LEFT JOIN`zone_document` AS`zd` ON`zd`.`zone_id` = `ud`.`zone_id` " +
-                    "LEFT JOIN`zone_wise_cars_service` AS`zwcs` ON`zwcs`.`user_car_id` = `uc`.`user_car_id` AND`zwcs`.`zone_doc_id` = `zd`.`zone_doc_id` AND`zwcs`.`status` = 1 AND`zwcs`.`service_provide` = 1 " +
-                    "WHERE`ud`.`user_id` = ? AND`ud`.`user_type` = ? ORDER BY`zwcs`.`zone_service_id` DESC", [
-                    uObj.user_id, ut_driver
-                ], (err, result) => {
-
-                    if (err) {
-                        helper.ThrowHtmlError(err, res);
-                        return
-                    }
-
-                    if (result.length > 0) {
-                        var message = "";
-                        if (reqObj.is_online == 0) {
-                            if (result[0].status == 3) {
-                                // Not Offline Driver (Ride is Started)
-                                res.json({ "status": "0", "message": "please complete ride after go offline" })
-                                return
-                            }
-                        } else {
-
-                            if (result[0].status == 1 || result[0].status == 0) {
-                                res.json({ "status": "0", "message": "Your account not approved" })
-                                return
-                            }
-
-                            if (result[0].car_id == undefined || result[0].car_id == "") {
-                                res.json({ "status": "0", "message": "Please select car" })
-                                return
-                            }
-
-                            if (result[0].car_id != undefined && result[0].car_id != "" && result[0].car_status != 1) {
-                                res.json({ "status": "0", "message": "Please select car" })
-                                return
-                            }
-
-                            if (result[0].zone_service_id == undefined || result[0].zone_service_id == "") {
-                                res.json({ "status": "0", "message": "Please select serivce is on" })
-                                return
-                            }
-                        }
-                        var statusCondition = "="
-
-                        if (reqObj.is_online == 1) {
-                            statusCondition = ">=";
-                        }
-
-                        db.query("UPDATE `user_detail` SET `is_online` = ? WHERE `user_id` = ? AND `status` " + statusCondition + " ? ", [reqObj.is_online, uObj.user_id, 2], (err, result) => {
-
-                            if (err) {
-                                helper.ThrowHtmlError(err, res);
-                                return
-                            }
-                            if (result.affectedRows > 0) {
-                                res.json({ "status": "1", "is_online": reqObj.is_online, "message": reqObj.is_online == 1 ? "Driver is online" : "Driver is Offline" })
-                            } else {
-                                res.json({ "status": "0", "message": msg_fail })
-                            }
-                        })
-
-                    } else {
-                        res.json({ "status": "0", "message": msg_fail })
-                    }
-
-                })
-            })
-        }, ut_driver)
-
 
     })
 

@@ -322,7 +322,7 @@ module.exports.controller = (app, io, socket_list) => {
                                     "INNER JOIN  `user_detail` AS `ud` ON `bd`.`driver_id` = `ud`.`user_id` " +
                                     "INNER JOIN `user_detail` AS `rud` ON `bd`.`user_id` = `rud`.`user_id` " +
                                     "INNER JOIN `service_detail` AS `sd` ON `bd`.`service_id` = `sd`.`service_id` " +
-                                    "SET `bd`.`booking_status` = '" + bs_go_user + "', `rud`.`status` = 2, `bd`.`accept_time` = NOW(), `bd`.`start_time` = NOW(), `bd`.`user_car_id` = `ud`.`car_id`, `ud`.`is_request_send` = ? , `bd`.`otp_code` = ? WHERE `bd`.`booking_id` = ? AND `bd`.`driver_id` = ? ", [2, otpCode, reqObj.booking_id, uObj.user_id
+                                    "SET `bd`.`booking_status` = '" + bs_go_user + "', `rud`.`status` = 2, `bd`.`accpet_time` = NOW(), `bd`.`start_time` = NOW(), `bd`.`user_car_id` = `ud`.`car_id`, `ud`.`is_request_send` = ? , `bd`.`otp_code` = ? WHERE `bd`.`booking_id` = ? AND `bd`.`driver_id` = ? ", [2, otpCode, reqObj.booking_id, uObj.user_id
                                 ], (err, result) => {
                                     if (err) {
                                         helper.ThrowHtmlError(err, res);
@@ -587,11 +587,11 @@ function driverNewRequestSend(bookingDetail, callback) {
 
                 } else {
                     //no Driver Available
-                    helper.Dlog(" No Driver Available : " + bookingDetail.accept_driver_id)
+                    helper.Dlog(" No Driver Available : " + bookingDetail.accpet_driver_id)
 
-                    if (bookingDetail.accept_driver_id != undefined && bookingDetail.accept_driver_id != "") {
+                    if (bookingDetail.accpet_driver_id != undefined && bookingDetail.accpet_driver_id != "") {
                         //Recall Driver Not Driver Found
-                        db.query("UPDATE `booking_detail` SET `driver_id` = `accept_driver_id` WHERE `booking_id` = ? ", [bookingDetail.booking_id], (err, result) => {
+                        db.query("UPDATE `booking_detail` SET `driver_id` = `accpet_driver_id` WHERE `booking_id` = ? ", [bookingDetail.booking_id], (err, result) => {
                             if (err) {
                                 helper.ThrowHtmlError(err);
                                 return
@@ -750,7 +750,7 @@ function driverNewRequestSendByBookingID(bookingID) {
         "INNER JOIN `price_detail` AS `pd` ON `pd`.`price_id` = `bd`.`price_id` " +
         "INNER JOIN `payment_detail` AS `ppd` ON `ppd`.`payment_id` = `bd`.`payment_id` " +
         "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
-        "WHERE `bd`.`booking_id` = ? AND ( `bd`.`booking_status` = ? OR (`bd`.`booking_status` < ? AND `bd`.`accept_driver_id` != '')) ",
+        "WHERE `bd`.`booking_id` = ? AND ( `bd`.`booking_status` = ? OR (`bd`.`booking_status` < ? AND `bd`.`accpet_driver_id` != '')) ",
 
         [bookingID, bs_pending, bs_start], (err, result) => {
 
@@ -765,7 +765,7 @@ function driverNewRequestSendByBookingID(bookingID) {
 
                     if (status == 2) {
 
-                        if (result[0].accept_driver_id == "") {
+                        if (result[0].accpet_driver_id == "") {
                             //New Booking Request No Driver Found
 
                             var userSocket = controllerSocketList['us_' + result[0].user_id];
@@ -787,7 +787,7 @@ function driverNewRequestSendByBookingID(bookingID) {
                         } else {
                             //Recall Driver Not Found
 
-                            var driverSocket = controllerSocketList['us_' + result[0].accept_driver_id];
+                            var driverSocket = controllerSocketList['us_' + result[0].accpet_driver_id];
                             if (driverSocket && controllerIO.sockets.sockets.get(driverSocket.socket_id)) {
 
                                 var response = {
@@ -803,7 +803,7 @@ function driverNewRequestSendByBookingID(bookingID) {
 
                             }
 
-                            db.query("SELECT `user_id`, `push_token` FROM `user_detail` WHERE `user_id` = ? ", [bookingInfo.accept_driver_id], (err, result) => {
+                            db.query("SELECT `user_id`, `push_token` FROM `user_detail` WHERE `user_id` = ? ", [bookingInfo.accpet_driver_id], (err, result) => {
                                 if (err) {
                                     helper.ThrowHtmlError(err)
                                     return;
@@ -835,7 +835,7 @@ function driverNewRequestSendByBookingID(bookingID) {
 function userRideCancel(booking_id, booking_status, user_id, user_type, isForce, callback) {
     var rideCancelTime = helper.serverYYYYMMDDHHmmss()
     var id = "user_id"
-    var checkTime = "accept_time"
+    var checkTime = "accpet_time"
     var response = "";
     var isDriverCancel = '0';
 

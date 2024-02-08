@@ -73,20 +73,20 @@ module.exports.controller = (app, io, socket_list) => {
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["pickup_latitude", "pickup_longitude", "pickup_address", "drop_latitude", "drop_longitude", "drop_address", "pickup_date", "payment_type", "card_id", "price_id", "est_total_distance", 'est_duration', 'amount', "service_id"], () => {
 
-                helper.Dlog(" Date Time:  " + helper.serverDateTimeAddMin(reqObj.pickup_date, "YYYY-MM-DD HH:mm:ss", -newRequestTimeABC) + " , " + helper.serverDateTimeAddMin(reqObj.pickup_date, "YYYY-MM-DD HH:mm:ss", newRequestTimeABC)) ;
+                helper.Dlog(" Date Time:  " + helper.serverDateTimeAddMin(reqObj.pickup_date, "YYYY-MM-DD HH:mm:ss", -newRequestTimeABC) + " , " + helper.serverDateTimeAddMin(reqObj.pickup_date, "YYYY-MM-DD HH:mm:ss", newRequestTimeABC));
                 db.query(
 
                     //Check Per Pending Request  8:45 to 9:15 
                     //Booking Time = 9:00 
 
-                   
+
 
                     "SELECT COUNT (*) AS `booking_count` FROM `booking_detail` WHERE `user_id` = ? AND (`pickup_date` BETWEEN ? AND ?) AND `booking_status` < ? ;" +
 
                     "SELECT `pd`.`base_charge`, `pd`.`booking_charge`, `zl`.`tax`, `pd`.`per_km_charge`, `pd`.`per_min_charge`, `pd`.`mini_fair`, `pd`.`mini_km`, `cancel_charge` FROM `price_detail` AS `pd` INNER JOIN `zone_list` AS `zl` ON `zl`.`zone_id` = `pd`.`zone_id` WHERE `pd`.`price_id` = ? ;",
 
 
-                    
+
 
                     [uObj.user_id, helper.serverDateTimeAddMin(reqObj.pickup_date, "YYYY-MM-DD HH:mm:ss", -newRequestTimeABC), helper.serverDateTimeAddMin(reqObj.pickup_date, "YYYY-MM-DD HH:mm:ss", newRequestTimeABC), bs_complete, reqObj.price_id], (err, result) => {
 
@@ -151,10 +151,13 @@ module.exports.controller = (app, io, socket_list) => {
                                             if (result) {
                                                 // UserBooking  Done
 
-                                                db.query("SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`user_id`, `bd`.`pickup_lat`, `bd`.`pickup_long`, `bd`.`pickup_address`, `bd`.`drop_lat`, `bd`.`drop_long`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`service_id`, `bd`.`price_id`, `bd`.`payment_id`, `bd`.`est_total_distance`, `bd`.`est_duration`,  `bd`.`created_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`booking_status`, `bd`.`request_driver_id`, `pd`.`zone_id`, `pd`.`mini_km`, `sd`.`service_name`, `sd`.`color`, `sd`.`icon`, `ud`.`name`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`push_token`, (CASE WHEN `ud`.`image` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `ud`.`image`  ) ELSE '' END) AS `image` FROM `booking_detail` AS `bd` " +
+                                                db.query("SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`user_id`, `bd`.`pickup_lat`, `bd`.`pickup_long`, `bd`.`pickup_address`, `bd`.`drop_lat`, `bd`.`drop_long`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`service_id`, `bd`.`price_id`, `bd`.`payment_id`, `bd`.`est_total_distance`, `bd`.`est_duration`,  `bd`.`created_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`booking_status`, `bd`.`request_driver_id`, `pd`.`zone_id`, `pd`.`mini_km`, `sd`.`service_name`, `sd`.`color`, `sd`.`icon`, `ud`.`name`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`push_token`, (CASE WHEN `ud`.`image` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `ud`.`image`  ) ELSE '' END) AS `image`, `ppd`.`amt`, `ppd`.`driver_amt`, `ppd`.`payment_type` FROM `booking_detail` AS `bd` " +
                                                     "INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `bd`.`user_id` " +
                                                     "INNER JOIN `price_detail` AS `pd` ON `pd`.`price_id` = `bd`.`price_id` " +
-                                                    "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
+                                                    "INNER JOIN `payment_detail` AS `ppd` ON `ppd`.`payment_id` = `bd`.`payment_id` " +
+                                                    "INNER JOIN `service_detail` AS `sd` ON `bd`.`service_id` = `sd`.`service_id` " +
+
+                                                    //payment_detail
                                                     "WHERE `bd`.`booking_id` = ? AND `bd`.`booking_status` = ?",
 
                                                     [result.insertId, bs_pending], (err, result) => {
@@ -261,7 +264,7 @@ module.exports.controller = (app, io, socket_list) => {
                 // Tracking OP
 
                 db.query("UPDATE `user_detail` SET `lati` = ? , `longi` = ? WHERE `user_id` = ? AND `user_type` = ? ", [
-                    reqObj.latitude, reqObj.longitude ,  uObj.user_id, ut_driver
+                    reqObj.latitude, reqObj.longitude, uObj.user_id, ut_driver
                 ], (err, result) => {
                     if (err) {
                         helper.ThrowHtmlError(err, res);
@@ -523,18 +526,6 @@ function driverNewRequestSend(bookingDetail, callback) {
             allReadySendRequest = "''"
         }
 
-        helper.Dlog("allready_sendReqest :-" + allReadySendRequest);
-
-        helper.Dlog("SELECT `ud`.`user_id`, `ud`.`device_source`, `ud`.`push_token`, `ud`.`lati`, `ud`.`longi` FROM `user_detail` AS `ud` " +
-            "INNER JOIN `zone_document` AS `zd` ON `zd`.`zone_id` = `ud`.`zone_id` AND `zd`.`service_id` = ? AND FIND_IN_SET(`zd`.`service_id`, `ud`.`select_service_id`) != 0 " +
-            "INNER JOIN `price_detail` AS `pm` ON `pm`.`zone_id` = `zd`.`zone_id` AND `pm`.`price_id` = ?  " +
-            "INNER JOIN `zone_wise_cars_service` AS `zwcs` ON `ud`.`car_id` = `zwcs`.`user_car_id` AND `zwcs`.`zone_doc_id` = `zd`.`zone_doc_id` " +
-            "WHERE `ud`.`user_type` = 2 AND `ud`.`status` >= 1 AND `ud`.`is_request_send` = 0 AND `zwcs`.`expiry_date` >= ? AND `zwcs`.`status` = 1 AND `zwcs`.`service_provide` = 1 AND (`ud`.`lati` BETWEEN " + minLat + " AND " + maxLat + " ) AND (`ud`.`longi` BETWEEN " + minLng + " AND " + maxLng + " ) AND `ud`.`user_id` NOT IN (" + allReadySendRequest + " ) AND `ud`.`user_id` NOT IN (SELECT `driver_id` FROM `booking_detail` WHERE `pickup_date` BETWEEN ? AND ? AND `booking_status` < ? GROUP BY user_id  );  ");
-
-        helper.Dlog(
-            [bookingDetail.service_id, bookingDetail.price_id, helper.serverMySqlDate(bookingDetail.pickup_date, "YYYY-MM-DD"), helper.serverMySqlDate(bookingDetail.pickup_date, "YYYY-MM-DD HH:mm:ss"), helper.serverDateTimeAddMin(bookingDetail.pickup_date, "YYYY-MM-DD HH:mm:ss", newRequestTimeABC), bs_complete]
-        );
-
 
         db.query(
             "SELECT `ud`.`user_id`, `ud`.`device_source`, `ud`.`push_token`, `ud`.`lati`, `ud`.`longi` FROM `user_detail` AS `ud` " +
@@ -689,6 +680,7 @@ function driverSendRequestFire(bookingDetail, driverDetail, isSendNotification) 
 
     if (isSendNotification) {
 
+        //`bd`.`drop_lat`, `bd`.`drop_long`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`service_id`, `bd`.`price_id`, `bd`.`payment_id`, `bd`.`est_total_distance`, `bd`.`est_duration`,  `bd`.`created_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`booking_status`, `bd`.`request_driver_id`, `pd`.`zone_id`, `pd`.`mini_km`, `sd`.`service_name`, `sd`.`color`, `sd`.`icon`, `ud`.`name`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`push_token`, (CASE WHEN `ud`.`image` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `ud`.`image`  ) ELSE '' END) AS `image`, `ppd`.`amt`, `ppd`.`amt`, `ppd`.`payment_type`
         // OneSignal Push
         oneSignalPushFire(ut_driver, [driverDetail.push_token], nt_t_1_new_request, 'pickup location: ' + bookingDetail.pickup_address, {
             "booking_id": bookingDetail.booking_id,
@@ -699,7 +691,16 @@ function driverSendRequestFire(bookingDetail, driverDetail, isSendNotification) 
             "pickup_date": helper.isoDate(helper.serverMySqlDate(bookingDetail.pickup_date)),
             "pickup_lat": bookingDetail.pickup_lat,
             "pickup_long": bookingDetail.pickup_long,
+            "pickup_date": helper.isoDate(helper.serverMySqlDate(bookingDetail.pickup_date)),
+            "drop_lat": bookingDetail.pickup_lat,
+            "drop_long": bookingDetail.pickup_long,
+            "pickup_address": bookingDetail.pickup_address,
+            "drop_address": bookingDetail.drop_address,
+            "amt": bookingDetail.amt,
+            "payment_type": bookingDetail.payment_type,
             "notification_id": nt_id_1_new_request,
+
+            "est_total_distance": bookingDetail.est_total_distance, "est_duration": bookingDetail.est_duration,
             "pickup_accpet_time": bookingDetail.request_accpet_time,
             "request_time_out": helper.serverDateTimeAddMin(bookingDetail.request_accpet_time),
 
@@ -744,16 +745,17 @@ function removeRequestTokenPendingArr(token) {
 
 function driverNewRequestSendByBookingID(bookingID) {
     helper.Dlog("---------------- Other Driver Request Send Processing -----------------")
-    db.query("SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`user_id`, `bd`.`pickup_lat`, `bd`.`pickup_long`, `bd`.`pickup_address`, `bd`.`drop_lat`, `bd`.`drop_long`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`service_id`, `bd`.`price_id`, `bd`.`payment_id`, `bd`.`est_total_distance`, `bd`.`est_duration`,  `bd`.`created_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`booking_status`, `bd`.`request_driver_id`, `pd`.`zone_id`, `pd`.`mini_km`, `sd`.`service_name`, `sd`.`color`, `sd`.`icon`, `ud`.`name`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`push_token`, (CASE WHEN `ud`.`image` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `ud`.`image`  ) ELSE '' END) AS `image` FROM `booking_detail` AS `bd` " +
+    db.query("SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`user_id`, `bd`.`pickup_lat`, `bd`.`pickup_long`, `bd`.`pickup_address`, `bd`.`drop_lat`, `bd`.`drop_long`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`service_id`, `bd`.`price_id`, `bd`.`payment_id`, `bd`.`est_total_distance`, `bd`.`est_duration`,  `bd`.`created_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`booking_status`, `bd`.`request_driver_id`, `pd`.`zone_id`, `pd`.`mini_km`, `sd`.`service_name`, `sd`.`color`, `sd`.`icon`, `ud`.`name`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`push_token`, (CASE WHEN `ud`.`image` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `ud`.`image`  ) ELSE '' END) AS `image`, `ppd`.`amt`, `ppd`.`driver_amt`, `ppd`.`payment_type` FROM `booking_detail` AS `bd` " +
         "INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `bd`.`user_id` " +
         "INNER JOIN `price_detail` AS `pd` ON `pd`.`price_id` = `bd`.`price_id` " +
+        "INNER JOIN `payment_detail` AS `ppd` ON `ppd`.`payment_id` = `bd`.`payment_id` " +
         "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
         "WHERE `bd`.`booking_id` = ? AND ( `bd`.`booking_status` = ? OR (`bd`.`booking_status` < ? AND `bd`.`accept_driver_id` != '')) ",
 
         [bookingID, bs_pending, bs_start], (err, result) => {
 
             if (err) {
-                helper.ThrowHtmlError(err, res);
+                helper.ThrowHtmlError(err);
                 return
             }
 

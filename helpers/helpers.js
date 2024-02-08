@@ -9,7 +9,7 @@ const msg_server_internal_error = "Server Internal Error"
 module.exports = {
 
     ImagePath:() => {
-        return "http://192.168.1.5:3001/img/";
+        return "http://localhost:3001/img/";
     },
 
     ThrowHtmlError: (err, res) => {
@@ -130,7 +130,31 @@ module.exports = {
 
     isoDate:(date) => {
         return moment.tz(date, 'YYYY-MM-DD HH:mm:ss', timezone_name ).toISOString();
-    }
+    },
+    //serverDateTimeAddMin(bookingDetail.pickup_date, "YYYY-MM-DD HH:mm:ss", newRequestTimeABC)
+    serverDateTimeAddMin: (date, format = 'YYYY-MM-DD HH:mm:ss', add_minutes = 0 ) => {
+        var jun = moment(new Date(date)).add(add_minutes, 'm');
+        jun.tz(timezone_name).format();
+        //Dlog("server_datetime_add_minutes :- " + jun.format(format));
+        return jun.format(format);;
+    },
+    findNearByLocation: (lat, long, radius_km, callback) => {
+        var latitude = parseFloat(lat);
+        var longitude = parseFloat(long);
+        var distance_find = parseFloat(radius_km); // value is km convent 1 miles = 1.60934 km
+        //Dlog("latitude : " + latitude+ "longitude : "+longitude +"distance_find : " +distance_find);
+        var radius = 6371;
+        var maxlat = latitude + ((distance_find / radius) * 180 / Math.PI);
+        var minlat = latitude - ((distance_find / radius) * 180 / Math.PI);
+        var maxlng = longitude + ((distance_find / radius / Math.cos(latitude * Math.PI / 180)) * 180 / Math.PI);
+        var minlng = longitude - ((distance_find / radius / Math.cos(latitude * Math.PI / 180)) * 180 / Math.PI);
+        Dlog("minlat : " + minlat + "minmaxlatlat : " + maxlat + "minlng : " + minlng + "maxlng : " + maxlng);
+        return callback(minlat, maxlat, minlng, maxlng);
+    },
+
+    distance: (lat1, lon1, lat2, lon2) => {
+        return distance(lat1, lon1, lat2, lon2);
+    },
 
 }
 
@@ -155,6 +179,25 @@ function Dlog(log) {
 
 function serverYYYYMMDDHHmmss() {
     return serverDateTime('YYYY-MM-DD HH:mm:ss');
+}
+
+function distance(lat1, lon1, lat2, lon2) {
+    var radlat1 = Math.PI * parseFloat(lat1) / 180;
+    var radlat2 = Math.PI * parseFloat(lat2) / 180;
+    var theta = parseFloat(lon1) - parseFloat(lon2);
+    var radtheta = Math.PI * theta / 180;
+    var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+    dist = Math.acos(dist);
+    dist = dist * 180 / Math.PI;
+    dist = dist * 60 * 1.1515;
+    dist = dist * 1.609344;
+    //Dlog(dist);
+    if (isNaN(dist)) {
+        //Dlog("Nan :- "+lat1+","+lon1+","+lat2+","+lon2+",");
+        dist = 0;
+    }
+    //Dlog("dist :-"+dist);
+    return dist;
 }
 
 process.on('uncaughtException', (err) => {

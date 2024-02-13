@@ -236,7 +236,7 @@ module.exports.controller = (app, io, socket_list) => {
 function checkAccessToken(helperObj, res, callback, requireType = "") {
     helper.Dlog(helperObj.access_token)
     helper.CheckParameterValid(res, helperObj, ["access_token"], () => {
-        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  `image`, `status` FROM `user_detail` WHERE  `auth_token` = ? AND `status` = ? ', [helperObj.access_token, "1"], (err, result) => {
+        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  `image`, `status` FROM `user_detail` WHERE  `auth_token` = ? AND (`status` = ? OR `status` = ?) ', [helperObj.access_token, "1", "2"], (err, result) => {
 
             if (err) {
                 helper.ThrowHtmlError(err);

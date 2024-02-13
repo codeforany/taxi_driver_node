@@ -156,6 +156,19 @@ module.exports = {
         return distance(lat1, lon1, lat2, lon2);
     },
 
+    timeDuration:(date1, date2, callback) => {
+        var now = moment(date1);
+        var end = moment(date2);
+        var duration = moment.duration(now.diff(end));
+        var totalMin = duration.asMinutes();
+        var durationString = moment.utc(duration.asMilliseconds()).format("mm:ss")
+        if(totalMin > 60) {
+            durationString = moment.utc(duration.asMilliseconds()).format("HH:mm:ss")
+        }
+        return callback(totalMin, durationString)
+
+    }
+
 }
 
 

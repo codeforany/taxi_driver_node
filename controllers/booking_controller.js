@@ -651,7 +651,7 @@ module.exports.controller = (app, io, socket_list) => {
                             bookingInformationDetail(reqObj.booking_id, '2', (status, result) => {
 
                                 if (status != 0) {
-                                    result[0].waiting = waitingTime;
+                                    
                                     res.json({
                                         "status": "1",
                                         "payload": result[0],

@@ -720,7 +720,7 @@ module.exports.controller = (app, io, socket_list) => {
         var reqObj = req.body
 
         checkAccessToken(req.headers, res, (uObj) => {
-            helper.CheckParameterValid(res, reqObj, ["booking_id", "driver_id", "drop_latitude", "drop_longitude", "toll_tax", "ride_location"], () => {
+            helper.CheckParameterValid(res, reqObj, ["booking_id", "drop_latitude", "drop_longitude", "toll_tax", "ride_location"], () => {
                 var stopTime = helper.serverYYYYMMDDHHmmss()
                 var rideLocationString = "";
                 var rideLocationArr = JSON.parse(reqObj.ride_location);
@@ -747,7 +747,7 @@ module.exports.controller = (app, io, socket_list) => {
 
                         if (result.length > 0) {
 
-                            helper.timeDuration(stopTime, helper.serverMySqlDate(result[0].start_time, (totalMin, durationString) => {
+                            helper.timeDuration(stopTime, helper.serverMySqlDate(result[0].start_time), (totalMin, durationString) => {
 
                                 if (result[0].mini_km > totalKM) {
                                     totalKM = parseFloat(result[0].mini_km)
@@ -782,8 +782,8 @@ module.exports.controller = (app, io, socket_list) => {
                                     "INNER JOIN `user_detail` AS `dd` ON `dd`.`user_id` = `bd`.`driver_id` " +
                                     "INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `bd`.`user_id` " +
                                     "INNER JOIN `payment_detail` AS `pd` ON `pd`.`payment_id` = `bd`.`payment_id` " +
-                                    "SET `bd`.`booking_status` = ?, `bd`.`toll_tax` = ?, `bd`.`est_total_distance` = ? , `bd`.`duration` = ?, `pd`.`amt` = ?, `bd`.`drop_lat` = ? , `bd`.`drop_long` = ?, `pd`.`status` = 1 , `pd`.`payment_date` = NOW(), `dd`.`status` = 1, `ud`.`status` = 1, `bd`.`stop_time` = NOW(), `bd`.`taxi_amount` = ?, `pd`.`driver_amt` = ? , `pd`.`tax_amt` = ?, `pd`.`ride_commission` = ?  " +
-                                    "WHERE `bd`.`booking_status` = ? AND `bd`.`driver_id` = ?  AND `bd`.`booking_status` < ? ", [
+                                    "SET `bd`.`booking_status` = ?, `bd`.`toll_tax` = ?, `bd`.`total_distance` = ? , `bd`.`duration` = ?, `pd`.`amt` = ?, `bd`.`drop_lat` = ? , `bd`.`drop_long` = ?, `pd`.`status` = 1 , `pd`.`payment_date` = NOW(), `dd`.`status` = 1, `ud`.`status` = 1, `bd`.`stop_time` = NOW(), `bd`.`taxi_amout` = ?, `pd`.`driver_amt` = ? , `pd`.`tax_amt` = ?, `pd`.`ride_commission` = ?  " +
+                                    "WHERE `bd`.`booking_id` = ? AND `bd`.`driver_id` = ?  AND `bd`.`booking_status` < ? ", [
                                     bs_complete, reqObj.toll_tax, totalKM, durationString, totalAmount, reqObj.drop_latitude, reqObj.drop_longitude, totalAmount, driverAmount, taxAmount, rideCommission, reqObj.booking_id, uObj.user_id, bs_complete
                                 ], (err, result) => {
                                     if (err) {
@@ -846,7 +846,7 @@ module.exports.controller = (app, io, socket_list) => {
                                 })
 
 
-                            }))
+                            })
 
                         } else {
                             res.json({

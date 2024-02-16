@@ -511,7 +511,7 @@ module.exports.controller = (app, io, socket_list) => {
                         }
                     } else {
 
-                        if (result[0].booking_start == bs_complete) {
+                        if (result[0].booking_status == bs_complete) {
 
                             res.json(
                                 {
@@ -1301,17 +1301,17 @@ function userRideCancel(booking_id, booking_status, user_id, user_type, isForce,
     if (booking_status == bs_go_user || booking_status == bs_wait_user) {
         sql = "UPDATE `booking_detail` AS `bd`" +
             "INNER JOIN `user_detail` AS `ud` ON `bd`.`driver_id` = `ud`.`user_id` " +
-            "INNER JOIN `user_detail` AS `uud` ON `bd`.`user_id` = `ud`.`user_id` " +
+            "INNER JOIN `user_detail` AS `uud` ON `bd`.`user_id` = `uud`.`user_id` " +
             "SET `bd`.`booking_status` = ?, `bd`.`is_driver_cancel` = ?, `bd`.`stop_time` = NOW(), `ud`.`status` = '1', `uud`.`status` = '1' " +
-            "WHERE `bd`.`booking_id` = ? AND `bd`.`" + id + "` = ? AND `bd`.`booking_status` = < ? " + condition;
+            "WHERE `bd`.`booking_id` = ? AND `bd`.`" + id + "` = ? AND `bd`.`booking_status` <= ? " + condition;
     } else {
         sql = "UPDATE `booking_detail` AS `bd`" +
             "SET `bd`.`booking_status` = ?, `bd`.`is_driver_cancel` = ?, `bd`.`stop_time` = NOW() " +
-            "WHERE `bd`.`booking_id` = ? AND `bd`.`" + id + "` = ? AND `bd`.`booking_status` = < ? " + condition;
+            "WHERE `bd`.`booking_id` = ? AND `bd`.`" + id + "` = ? AND `bd`.`booking_status` <= ? " + condition;
     }
 
     helper.Dlog(sql);
-    db.query(sql, [bs_cancel, isDriverCancel, booking_id, user_id, isForce ? "8" : booking_start], (err, result) => {
+    db.query(sql, [bs_cancel, isDriverCancel, booking_id, user_id, isForce ? "8" : bs_start], (err, result) => {
         if (err) {
             helper.ThrowHtmlError(err);
             return
@@ -1430,7 +1430,7 @@ function bookingInformation(booking_id, user_type, callback) {
     db.query("SELECT `bd`.*, `sd`.*, `pd`. *, `pm`.*, `zl`.*, `ud`.`name`, `ud`.`gender`, `uud`.`email`, `ud`.`mobile`, `ud`.`lati`, `ud`.`longi`, `ud`.`user_type`, `ud`.`push_token`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `ucd`.`car_number`, `pd`.`status` AS `payment_status` FROM `booking_detail`AS `bd` " +
 
         "INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `bd`.`" + userId + "` " +
-        "INNER JOIN `user_detail` AS `uud` ON `ud`.`user_id` = `bd`.`user_id` " +
+        "INNER JOIN `user_detail` AS `uud` ON `uud`.`user_id` = `bd`.`user_id` " +
         "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
         "INNER JOIN `payment_detail` AS `pd` ON `pd`.`payment_id` = `bd`.`payment_id` " +
         "INNER JOIN `price_detail` AS `pm` ON `pm`.`price_id` = `bd`.`price_id`" +

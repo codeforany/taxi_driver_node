@@ -333,13 +333,15 @@ module.exports.controller = (app, io, socket_list) => {
 
                                     if (result.affectedRows > 0) {
                                         removeRequestTokenPendingArr[reqObj.request_token];
+
+                                        helper.Dlog("--------------------- ride accepted successfully --------------")
                                         res.json({
                                             "status": "1",
                                             "message": "ride accepted successfully"
                                         })
 
                                         db.query("SELECT `ud`.`push_token`, `ud`.`user_id`, `bd`.`pickup_date`  FROM `booking_detail` AS `bd`" +
-                                            "INNER JOIN `user_detail` AS `ud` ON `bd`.`user_id` = `bd`.`user_id` " +
+                                            "INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `bd`.`user_id` " +
                                             "WHERE `bd`.`booking_id` = ?", [reqObj.booking_id], (err, result) => {
                                                 if (err) {
                                                     helper.ThrowHtmlError(err);
@@ -347,6 +349,8 @@ module.exports.controller = (app, io, socket_list) => {
                                                 }
 
                                                 if (result.length > 0) {
+                                                    helper.Dlog(result);
+                                                    helper.Dlog("--------------------- ride accepted successfully " + result[0].user_id + "--------------")
                                                     var userSocket = controllerSocketList['us_' + result[0].user_id];
                                                     if (userSocket && controllerIO.sockets.sockets.get(userSocket.socket_id)) {
 
@@ -1326,6 +1330,8 @@ function userRideCancel(booking_id, booking_status, user_id, user_type, isForce,
                 bookingInformation(booking_id, user_type, (status, result) => {
                     if (status == 1) {
 
+                        // helper.Dlog(result);
+
                         helper.timeDuration(rideCancelTime, helper.serverMySqlDate(result[0][checkTime]), (totalMin, durationString) => {
 
                             if (booking_status >= bs_go_user && booking_status <= bs_wait_user) {
@@ -1385,12 +1391,6 @@ function userRideCancel(booking_id, booking_status, user_id, user_type, isForce,
                     }
                 })
 
-                return callback({
-                    "status": "1", "message": "Ride Cancel successfully", "payload": {
-                        "booking_id": parseInt(booking_id),
-                        "booking_status": bs_cancel,
-                    }
-                })
 
             } else {
                 //Ride Not Accepted

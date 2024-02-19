@@ -806,6 +806,7 @@ module.exports.controller = (app, io, socket_list) => {
                                                     "payload": {
                                                         "booking_id": parseInt(reqObj.booking_id),
                                                         "toll_tax": reqObj.toll_tax,
+                                                        "tax_amount": taxAmount,
                                                         "amount": totalAmount,
                                                         "duration": durationString,
                                                         "total_distance": totalKM,

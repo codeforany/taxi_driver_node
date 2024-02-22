@@ -799,6 +799,9 @@ module.exports.controller = (app, io, socket_list) => {
 
                                         bookingInformationDetail(reqObj.booking_id, '2', (status, result) => {
 
+                                            helper.Dlog("-------------- ---------------");
+                                            helper.Dlog( result );
+
                                             var userSocket = controllerSocketList['us_' + result[0].user_id];
                                             if (userSocket && controllerIO.sockets.sockets.get(userSocket.socket_id)) {
                                                 var responseObj = {
@@ -818,7 +821,7 @@ module.exports.controller = (app, io, socket_list) => {
                                                 }
 
                                                 controllerIO.sockets.sockets.get(userSocket.socket_id).emit("ride_stop", responseObj)
-
+                                                helper.Dlog("-------------- ride_stop socket send ---------------");
 
                                             }
 
@@ -917,6 +920,112 @@ module.exports.controller = (app, io, socket_list) => {
 
         })
     })
+
+    app.post('/api/driver_all_ride_list', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj = req.body;
+
+        checkAccessToken( req.headers, res, (uObj) => {
+            db.query(
+                "SELECT `bd`.`booking_id`, `bd`.`pickup_address`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`total_distance`, `bd`.`duration`, `bd`.`toll_tax`, `bd`.`tip_amount`, `bd`.`booking_status`, `sd`.`service_name`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`, `sd`.`color`, `pd`.`payment_type`, (CASE WHEN `pd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN `pd`.`amt` WHEN `pd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN 0 WHEN `pd`.`amt` <= 0 THEN 0 ELSE 0 END) AS `amount`, (CASE WHEN `bd`.`status` = 5 THEN `pd`.`driver_amt` ELSE 0 END ) AS `driver_amt`, (CASE WHEN `bd`.`status` = 5 THEN `pd`.`ride_commission` ELSE 0 END ) AS `ride_commission`  FROM `booking_detail` AS `bd` " +
+                "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
+                "INNER JOIN `price_detail` AS `pd` ON `pd`.`price_id` = `bd`.`price_id` " +
+                "INNER JOIN `payment_detail` AS `ppd` ON `ppd`.`payment_id` = `bd`.`payment_id` " +
+                "WHERE `bd`.`driver_id` = ? AND (`bd`.`booking_status` BETWEEN ? AND ? ) AND `bd`.`status` = ? ORDER BY `bd`.`booking_id` DESC",
+                [ bs_complete, bs_cancel, uObj.user_id, bs_accept, bs_cancel, '1' ], (err, result) => {
+
+                    if(err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    }else{
+                        var totalAmount = 0;
+
+                        result.forEach( (bookingObj, index) => {
+                            totalAmount += parseFloat(bookingObj.driver_amt); 
+                        } )
+
+                        res.json({
+                            'status':'1',
+                            "payload": {
+                                "ride_list": result,
+                                "total": totalAmount
+                            }
+                        })
+
+                    }
+                }
+
+            )
+        }, ut_driver)
+
+    } )
+
+    app.post('/api/user_all_ride_list', (req, res) => {
+        helper.Dlog(req.body);
+        var reqObj = req.body;
+
+        checkAccessToken(req.headers, res, (uObj) => {
+            db.query(
+                "SELECT `bd`.`booking_id`, `bd`.`pickup_address`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`est_total_distance`, `bd`.`est_duration`, `bd`.`total_distance`, `bd`.`duration`, `bd`.`booking_status`, `sd`.`service_name`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`, `sd`.`color` FROM `booking_detail` AS `bd` " +
+                "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
+                "WHERE `bd`.`user_id` = ? AND `bd`.`status` = ? ORDER BY `bd`.`booking_id` DESC",
+                [ uObj.user_id, '1'], (err, result) => {
+
+                    if (err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    } else {
+
+
+                        res.json({
+                            'status': '1',
+                            "payload":  result,
+                            
+                        })
+
+                    }
+                }
+
+            )
+        }, ut_user)
+
+    })
+
+    app.post('/api/ride_rating', (req, res) => {
+        helper.Dlog(req.body )
+        var reqObj = req.body
+
+        checkAccessToken( req.headers, res, (uObj) => {
+            helper.CheckParameterValid(res, reqObj, ["booking_id", "rating", "comment" ], () => {
+                //User calling this api then save driver rating
+                //Driver Calling this api then save user rating
+                var sql = "UPDATE `booking_detail` SET `driver_rating` = ?, `driver_comment` = ? WHERE `booking_id` = ? AND `user_id` = ? AND `booking_status`  = ? ";
+
+                if(uObj.user_type == ut_driver) {
+                    sql = "UPDATE `booking_detail` SET `user_rating` = ?, `user_comment` = ? WHERE `booking_id` = ? AND `driver_id` = ? AND `booking_status`  = ? ";
+                }
+
+                db.query(sql, [  reqObj.rating, reqObj.comment, reqObj.booking_id, uObj.user_id, bs_complete ], (err, result) => {
+                    if(err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    }
+
+                    if(result.affectedRows > 0) {
+                        res.json({
+                            'status':"1",
+                            "message" : "Thanks for rating"
+                        })
+                    }else{
+                        res.json({
+                            'status': "0",
+                            "message": msg_fail
+                        })
+                    }
+                } )
+            })
+        })
+    } )
 
 }
 

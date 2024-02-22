@@ -927,7 +927,7 @@ module.exports.controller = (app, io, socket_list) => {
 
         checkAccessToken( req.headers, res, (uObj) => {
             db.query(
-                "SELECT `bd`.`booking_id`, `bd`.`pickup_address`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`total_distance`, `bd`.`duration`, `bd`.`toll_tax`, `bd`.`tip_amount`, `bd`.`booking_status`, `sd`.`service_name`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`, `sd`.`color`, `pd`.`payment_type`, (CASE WHEN `pd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN `pd`.`amt` WHEN `pd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN 0 WHEN `pd`.`amt` <= 0 THEN 0 ELSE 0 END) AS `amount`, (CASE WHEN `bd`.`status` = 5 THEN `pd`.`driver_amt` ELSE 0 END ) AS `driver_amt`, (CASE WHEN `bd`.`status` = 5 THEN `pd`.`ride_commission` ELSE 0 END ) AS `ride_commission`  FROM `booking_detail` AS `bd` " +
+                "SELECT `bd`.`booking_id`, `bd`.`pickup_address`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`total_distance`, `bd`.`duration`, `bd`.`toll_tax`, `bd`.`tip_amount`, `bd`.`booking_status`, `sd`.`service_name`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`, `sd`.`color`, `ppd`.`payment_type`, (CASE WHEN `ppd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN `ppd`.`amt` WHEN `ppd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN 0 WHEN `ppd`.`amt` <= 0 THEN 0 ELSE 0 END) AS `amount`, (CASE WHEN `bd`.`booking_status` = 5 THEN `ppd`.`driver_amt` ELSE 0 END ) AS `driver_amt`, (CASE WHEN `bd`.`status` = 5 THEN `ppd`.`ride_commission` ELSE 0 END ) AS `ride_commission`  FROM `booking_detail` AS `bd` " +
                 "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
                 "INNER JOIN `price_detail` AS `pd` ON `pd`.`price_id` = `bd`.`price_id` " +
                 "INNER JOIN `payment_detail` AS `ppd` ON `ppd`.`payment_id` = `bd`.`payment_id` " +
@@ -938,9 +938,12 @@ module.exports.controller = (app, io, socket_list) => {
                         helper.ThrowHtmlError(err, res);
                         return
                     }else{
+                        var rTotalAmount = 0;
+
                         var totalAmount = 0;
 
                         result.forEach( (bookingObj, index) => {
+                            rTotalAmount += parseFloat(bookingObj.amount); 
                             totalAmount += parseFloat(bookingObj.driver_amt); 
                         } )
 
@@ -948,7 +951,8 @@ module.exports.controller = (app, io, socket_list) => {
                             'status':'1',
                             "payload": {
                                 "ride_list": result,
-                                "total": totalAmount
+                                "driver_total": totalAmount,
+                                    "total": rTotalAmount
                             }
                         })
 

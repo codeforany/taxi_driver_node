@@ -427,7 +427,7 @@ module.exports.controller = (app, io, socket_list) => {
                             );
                             res.json({
                                 "status": "1",
-                                "message": "ride request accept successfully"
+                                "message": "ride request decline successfully"
                             })
 
                             driverNewRequestSendByBookingID(reqObj.booking_id);

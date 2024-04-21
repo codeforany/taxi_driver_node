@@ -655,7 +655,7 @@ module.exports.controller = (app, io, socket_list) => {
                             bookingInformationDetail(reqObj.booking_id, '2', (status, result) => {
 
                                 if (status != 0) {
-                                    
+
                                     res.json({
                                         "status": "1",
                                         "payload": result[0],
@@ -800,7 +800,7 @@ module.exports.controller = (app, io, socket_list) => {
                                         bookingInformationDetail(reqObj.booking_id, '2', (status, result) => {
 
                                             helper.Dlog("-------------- ---------------");
-                                            helper.Dlog( result );
+                                            helper.Dlog(result);
 
                                             var userSocket = controllerSocketList['us_' + result[0].user_id];
                                             if (userSocket && controllerIO.sockets.sockets.get(userSocket.socket_id)) {
@@ -874,10 +874,10 @@ module.exports.controller = (app, io, socket_list) => {
 
         checkAccessToken(req.headers, res, (uObj) => {
             var userCol = "`user_id`"
-            if(uObj.user_type == ut_driver) {
+            if (uObj.user_type == ut_driver) {
                 userCol = "`driver_id`"
             }
-            db.query("SELECT  `bd`.`booking_id`, `bd`.`booking_status`, `bd`.`user_id`, `bd`.`driver_id` FROM `booking_detail` AS `bd` WHERE `bd`.`booking_status` < ? AND `bd`.`booking_status` > ? AND "+ userCol +" = ? LIMIT 1", [bs_complete, bs_pending, uObj.user_id], (err, result) => {
+            db.query("SELECT  `bd`.`booking_id`, `bd`.`booking_status`, `bd`.`user_id`, `bd`.`driver_id` FROM `booking_detail` AS `bd` WHERE `bd`.`booking_status` < ? AND `bd`.`booking_status` > ? AND " + userCol + " = ? LIMIT 1", [bs_complete, bs_pending, uObj.user_id], (err, result) => {
 
                 if (err) {
                     helper.Dlog(err, res);
@@ -887,11 +887,11 @@ module.exports.controller = (app, io, socket_list) => {
                 if (result.length > 0) {
 
                     bookingInformationDetail(result[0].booking_id, uObj.user_type, (status, result) => {
-                        
+
                         helper.Dlog("---------- Home ------------")
-                        helper.Dlog(result );
-                        if (status  != 0) {
-                                                       
+                        helper.Dlog(result);
+                        if (status != 0) {
+
                             res.json(
                                 {
                                     "status": "1",
@@ -903,9 +903,9 @@ module.exports.controller = (app, io, socket_list) => {
                         }
                     })
 
-                    
+
                 } else {
-                    
+
                     res.json(
                         {
                             "status": "1",
@@ -925,34 +925,34 @@ module.exports.controller = (app, io, socket_list) => {
         helper.Dlog(req.body);
         var reqObj = req.body;
 
-        checkAccessToken( req.headers, res, (uObj) => {
+        checkAccessToken(req.headers, res, (uObj) => {
             db.query(
                 "SELECT `bd`.`booking_id`, `bd`.`pickup_address`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`total_distance`, `bd`.`duration`, `bd`.`toll_tax`, `bd`.`tip_amount`, `bd`.`booking_status`, `sd`.`service_name`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`, `sd`.`color`, `ppd`.`payment_type`, (CASE WHEN `ppd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN `ppd`.`amt` WHEN `ppd`.`amt` > 0 AND `bd`.`booking_status` = ? THEN 0 WHEN `ppd`.`amt` <= 0 THEN 0 ELSE 0 END) AS `amount`, (CASE WHEN `bd`.`booking_status` = 5 THEN `ppd`.`driver_amt` ELSE 0 END ) AS `driver_amt`, (CASE WHEN `bd`.`status` = 5 THEN `ppd`.`ride_commission` ELSE 0 END ) AS `ride_commission`  FROM `booking_detail` AS `bd` " +
                 "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
                 "INNER JOIN `price_detail` AS `pd` ON `pd`.`price_id` = `bd`.`price_id` " +
                 "INNER JOIN `payment_detail` AS `ppd` ON `ppd`.`payment_id` = `bd`.`payment_id` " +
                 "WHERE `bd`.`driver_id` = ? AND (`bd`.`booking_status` BETWEEN ? AND ? ) AND `bd`.`status` = ? ORDER BY `bd`.`booking_id` DESC",
-                [ bs_complete, bs_cancel, uObj.user_id, bs_accept, bs_cancel, '1' ], (err, result) => {
+                [bs_complete, bs_cancel, uObj.user_id, bs_accept, bs_cancel, '1'], (err, result) => {
 
-                    if(err) {
+                    if (err) {
                         helper.ThrowHtmlError(err, res);
                         return
-                    }else{
+                    } else {
                         var rTotalAmount = 0;
 
                         var totalAmount = 0;
 
-                        result.forEach( (bookingObj, index) => {
-                            rTotalAmount += parseFloat(bookingObj.amount); 
-                            totalAmount += parseFloat(bookingObj.driver_amt); 
-                        } )
+                        result.forEach((bookingObj, index) => {
+                            rTotalAmount += parseFloat(bookingObj.amount);
+                            totalAmount += parseFloat(bookingObj.driver_amt);
+                        })
 
                         res.json({
-                            'status':'1',
+                            'status': '1',
                             "payload": {
                                 "ride_list": result,
                                 "driver_total": totalAmount,
-                                    "total": rTotalAmount
+                                "total": rTotalAmount
                             }
                         })
 
@@ -962,7 +962,7 @@ module.exports.controller = (app, io, socket_list) => {
             )
         }, ut_driver)
 
-    } )
+    })
 
     app.post('/api/user_all_ride_list', (req, res) => {
         helper.Dlog(req.body);
@@ -973,7 +973,7 @@ module.exports.controller = (app, io, socket_list) => {
                 "SELECT `bd`.`booking_id`, `bd`.`pickup_address`, `bd`.`drop_address`, `bd`.`pickup_date`, `bd`.`accpet_time`, `bd`.`start_time`, `bd`.`stop_time`, `bd`.`est_total_distance`, `bd`.`est_duration`, `bd`.`total_distance`, `bd`.`duration`, `bd`.`booking_status`, `sd`.`service_name`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`, `sd`.`color` FROM `booking_detail` AS `bd` " +
                 "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `bd`.`service_id` " +
                 "WHERE `bd`.`user_id` = ? AND `bd`.`status` = ? ORDER BY `bd`.`booking_id` DESC",
-                [ uObj.user_id, '1'], (err, result) => {
+                [uObj.user_id, '1'], (err, result) => {
 
                     if (err) {
                         helper.ThrowHtmlError(err, res);
@@ -983,8 +983,8 @@ module.exports.controller = (app, io, socket_list) => {
 
                         res.json({
                             'status': '1',
-                            "payload":  result,
-                            
+                            "payload": result,
+
                         })
 
                     }
@@ -996,40 +996,121 @@ module.exports.controller = (app, io, socket_list) => {
     })
 
     app.post('/api/ride_rating', (req, res) => {
-        helper.Dlog(req.body )
+        helper.Dlog(req.body)
         var reqObj = req.body
 
-        checkAccessToken( req.headers, res, (uObj) => {
-            helper.CheckParameterValid(res, reqObj, ["booking_id", "rating", "comment" ], () => {
+        checkAccessToken(req.headers, res, (uObj) => {
+            helper.CheckParameterValid(res, reqObj, ["booking_id", "rating", "comment"], () => {
                 //User calling this api then save driver rating
                 //Driver Calling this api then save user rating
                 var sql = "UPDATE `booking_detail` SET `driver_rating` = ?, `driver_comment` = ? WHERE `booking_id` = ? AND `user_id` = ? AND `booking_status`  = ? ";
 
-                if(uObj.user_type == ut_driver) {
+                if (uObj.user_type == ut_driver) {
                     sql = "UPDATE `booking_detail` SET `user_rating` = ?, `user_comment` = ? WHERE `booking_id` = ? AND `driver_id` = ? AND `booking_status`  = ? ";
                 }
 
-                db.query(sql, [  reqObj.rating, reqObj.comment, reqObj.booking_id, uObj.user_id, bs_complete ], (err, result) => {
-                    if(err) {
+                db.query(sql, [reqObj.rating, reqObj.comment, reqObj.booking_id, uObj.user_id, bs_complete], (err, result) => {
+                    if (err) {
                         helper.ThrowHtmlError(err, res);
                         return
                     }
 
-                    if(result.affectedRows > 0) {
+                    if (result.affectedRows > 0) {
                         res.json({
-                            'status':"1",
-                            "message" : "Thanks for rating"
+                            'status': "1",
+                            "message": "Thanks for rating"
                         })
-                    }else{
+                    } else {
                         res.json({
                             'status': "0",
                             "message": msg_fail
                         })
                     }
-                } )
+                })
             })
         })
+    })
+
+    app.post('/api/driver_summary', (req, res) => {
+
+        helper.Dlog(req.body)
+        var reqObj = req.body;
+
+        checkAccessToken(req.headers, res, (uObj) => {
+            db.query(
+                "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` " +
+                "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ? " +
+                "WHERE`bd`.`start_time` <= CURRENT_DATE() AND`bd`.`start_time` >= DATA(DATE_SUB(NOW(), INTERVAL 7 DAY)) ;" +
+                "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` "+
+            "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ? " + 
+                "WHERE`bd`.`start_time` <= CURRENT_DATE() AND`bd`.`start_time` >= DATA(DATE_SUB(NOW(), INTERVAL 7 DAY)) ;", [bs_complete, uObj.user_id, bs_complete, uObj.user_id ], (err, result) => {
+
+                    if(err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    }
+
+                    totalAmt = 0;
+                    cashAmt = 0;
+                    onlineAmt = 0;
+
+                    result[0].forEach( (obj) => {
+                        totalAmt = totalAmt + parseFloat(obj.amt);
+
+                        if(obj.payment_type == 1) {
+                            //Cash Payment
+                            cashAmt = cashAmt +  parseFloat(obj.amt);
+                        }else{
+                            //Online Payment
+                            onlineAmt = onlineAmt + parseFloat(obj.amt);
+                        }
+
+                    } )
+
+
+                    wTotalAmt = 0;
+                    wCashAmt = 0;
+                    wOnlineAmt = 0;
+
+                    result[1].forEach((obj) => {
+                        wTotalAmt = wTotalAmt + parseFloat(obj.amt);
+
+                        if (obj.payment_type == 1) {
+                            //Cash Payment
+                            wCashAmt = wCashAmt + parseFloat(obj.amt);
+                        } else {
+                            //Online Payment
+                            wOnlineAmt = wOnlineAmt + parseFloat(obj.amt);
+                        }
+
+                    })
+
+                    res.json( {
+                        'status':"1",
+                        "payload": {
+                            'today' : {
+                                'tips_count': result[0].length,
+                                'total_amt': totalAmt,
+                                'cash_amt': cashAmt,
+                                'online_amt': onlineAmt,
+                                'list': result[0]
+                            },
+                            'week': {
+                                'tips_count': result[1].length,
+                                'total_amt': wTotalAmt,
+                                'cash_amt': wCashAmt,
+                                'online_amt': wOnlineAmt,
+                                'list': result[1]
+                            }
+                        }
+                    })
+
+                } )
+        }, ut_driver)
+
     } )
+
+    
 
 }
 
@@ -1586,7 +1667,7 @@ function bookingInformationDetail(booking_id, user_type, callback) {
             break;
     }
 
-    var sql = "SELECT `bd`.`booking_id`, `bd`.`user_id`, `bd`.`pickup_lat`, `bd`.`pickup_long`, `bd`.`pickup_address`, " + otp_condition + " `bd`.`drop_lat`, `bd`.`drop_long`, `bd`.`drop_address`, `bd`.`service_id`, `bd`.`price_id`, `bd`.`driver_id`, `bd`.`total_distance`, `bd`.`accpet_time`, `bd`.`payment_id` , `bd`.`start_time` ,`bd`.`stop_time` ,`bd`.`duration` ,`bd`.`toll_tax` ,`bd`.`tip_amount` ,`bd`.`booking_status`, `bd`.`est_total_distance`, `bd`.`est_duration`, `pm`.`mini_km`, `ud`.`name`, `ud`.`push_token`, `ud`.`gender`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`lati`, `ud`.`longi` , (CASE WHEN `ud`.`image` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `ud`.`image`  ) ELSE '' END) AS `image`,  `pd`.`payment_type`,   `pd`.`amt`,   `pd`.`payment_date`,   `pd`.`tax_amt`,  `pd`.`pay_amt`,  `pd`.`pay_card_amt`,  `pd`.`driver_amt`,  `pd`.`pay_wallet_amt`, `pd`.`status` AS `user_payment_status`, `sd`.`service_name`, `sd`.`color`, (CASE WHEN `sd`.`top_icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `sd`.`top_icon`  ) ELSE '' END) AS `top_icon`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`,  `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `ucd`.`car_number`, `pd`.`status` AS `payment_status` FROM `booking_detail`AS `bd` " +
+    var sql = "SELECT `bd`.`booking_id`, `bd`.`user_id`, `bd`.`pickup_lat`, `bd`.`pickup_long`, `bd`.`pickup_address`, " + otp_condition + " `bd`.`drop_lat`, `bd`.`drop_long`, `bd`.`drop_address`, `bd`.`service_id`, `bd`.`price_id`, `bd`.`driver_id`, `bd`.`driver_rating`, `bd`.`driver_comment`, `bd`.`user_rating`, `bd`.`user_comment`, `bd`.`total_distance`, `bd`.`accpet_time`, `bd`.`payment_id` , `bd`.`start_time` ,`bd`.`stop_time` ,`bd`.`duration` ,`bd`.`toll_tax` ,`bd`.`tip_amount` ,`bd`.`booking_status`, `bd`.`est_total_distance`, `bd`.`est_duration`, `pm`.`mini_km`, `ud`.`name`, `ud`.`push_token`, `ud`.`gender`, `ud`.`mobile`, `ud`.`mobile_code`, `ud`.`lati`, `ud`.`longi` , (CASE WHEN `ud`.`image` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `ud`.`image`  ) ELSE '' END) AS `image`,  `pd`.`payment_type`,   `pd`.`amt`,   `pd`.`payment_date`,   `pd`.`tax_amt`,  `pd`.`pay_amt`,  `pd`.`pay_card_amt`,  `pd`.`driver_amt`,  `pd`.`pay_wallet_amt`, `pd`.`status` AS `user_payment_status`, `sd`.`service_name`, `sd`.`color`, (CASE WHEN `sd`.`top_icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' , `sd`.`top_icon`  ) ELSE '' END) AS `top_icon`, (CASE WHEN `sd`.`icon` != ''  THEN CONCAT( '" + helper.ImagePath() + "' ,`sd`.`icon`  ) ELSE '' END) AS `icon`,  `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `ucd`.`car_number`, `pd`.`status` AS `payment_status` FROM `booking_detail`AS `bd` " +
 
         "INNER JOIN `user_detail` AS `ud` ON `ud`.`user_id` = `bd`." + userId +
         " INNER JOIN `user_detail` AS `uud` ON `uud`.`user_id` = `bd`.`user_id` " +
@@ -1606,19 +1687,19 @@ function bookingInformationDetail(booking_id, user_type, callback) {
 
     )
 
-    db.query(sql, [booking_id ], (err, result) => {
-            if (err) {
-                helper.ThrowHtmlError(err);
-                return
-            }
+    db.query(sql, [booking_id], (err, result) => {
+        if (err) {
+            helper.ThrowHtmlError(err);
+            return
+        }
 
-            if (result.length > 0) {
-                return callback(1, result)
-            } else {
-                return callback(0, "No Booking Information")
-            }
+        if (result.length > 0) {
+            return callback(1, result)
+        } else {
+            return callback(0, "No Booking Information")
+        }
 
-        });
+    });
 
 }
 

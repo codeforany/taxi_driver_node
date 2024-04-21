@@ -1038,12 +1038,12 @@ module.exports.controller = (app, io, socket_list) => {
 
         checkAccessToken(req.headers, res, (uObj) => {
             db.query(
-                "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` " +
+                "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`pickup_address`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` " +
                 "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ? " +
-                "WHERE`bd`.`start_time` <= CURRENT_DATE() AND`bd`.`start_time` >= DATA(DATE_SUB(NOW(), INTERVAL 7 DAY)) ;" +
-                "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` "+
+                "WHERE DATE(`bd`.`start_time`) = CURRENT_DATE()  ;" +
+                "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`pickup_address`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` "+
             "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ? " + 
-                "WHERE`bd`.`start_time` <= CURRENT_DATE() AND`bd`.`start_time` >= DATA(DATE_SUB(NOW(), INTERVAL 7 DAY)) ;", [bs_complete, uObj.user_id, bs_complete, uObj.user_id ], (err, result) => {
+                "WHERE DATE(`bd`.`start_time`) <= CURRENT_DATE() AND DATE(`bd`.`start_time`) >= DATE_ADD(NOW(), INTERVAL -7 DAY) ;", [bs_complete, uObj.user_id, bs_complete, uObj.user_id ], (err, result) => {
 
                     if(err) {
                         helper.ThrowHtmlError(err, res);

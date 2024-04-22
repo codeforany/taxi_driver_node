@@ -1041,9 +1041,28 @@ module.exports.controller = (app, io, socket_list) => {
                 "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`pickup_address`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` " +
                 "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ? " +
                 "WHERE DATE(`bd`.`start_time`) = CURRENT_DATE()  ;" +
+
                 "SELECT `bd`.`booking_id`, `bd`.`driver_id`, `bd`.`pickup_address`, `bd`.`start_time`, `pd`.`amt`, `pd`.`payment_type` FROM `booking_detail` AS `bd` "+
-            "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ? " + 
-                "WHERE DATE(`bd`.`start_time`) <= CURRENT_DATE() AND DATE(`bd`.`start_time`) >= DATE_ADD(NOW(), INTERVAL -7 DAY) ;", [bs_complete, uObj.user_id, bs_complete, uObj.user_id ], (err, result) => {
+                "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ? " + 
+                "WHERE DATE(`bd`.`start_time`) <= CURRENT_DATE() AND DATE(`bd`.`start_time`) >= DATE_ADD(NOW(), INTERVAL -7 DAY) ;" +
+                
+                "SELECT `dt`.`date`, " + 
+                "SUM( CASE WHEN `bd`.`booking_id` IS NOT NULL THEN 1 ELSE 0 END) AS `trips_count`, " +
+                "SUM( CASE WHEN `bd`.`booking_id` IS NOT NULL THEN `pd`.`amt` ELSE 0.0 END) AS `total_amt`, " +
+                "SUM( CASE WHEN `bd`.`booking_id` IS NOT NULL AND `pd`.`payment_type` = 1 THEN `pd`.`amt` ELSE 0.0 END) AS `cash_amt`, " +
+                "SUM( CASE WHEN `bd`.`booking_id` IS NOT NULL AND `pd`.`payment_type` = 2 THEN `pd`.`amt` ELSE 0.0 END) AS `online_amt` " +
+                "FROM `booking_detail` AS `bd` " + 
+                "INNER JOIN`payment_detail` AS`pd` ON`bd`.`payment_id` = `pd`.`payment_id` AND`bd`.`booking_status` = ? AND`bd`.`driver_id` = ?  " +
+                "AND DATE(`bd`.`start_time`) <= CURRENT_DATE() AND DATE(`bd`.`start_time`) >= DATE_ADD(NOW(), INTERVAL -7 DAY)  " +
+                "RIGHT JOIN ( " +
+
+                "SELECT DATE( DATE_ADD(NOW(), INTERVAL -1 * `C`.`daynum` DAY)) AS `date` FROM ( " +
+                "SELECT t *10 + u AS `daynum` FROM ( SELECT 0 AS t UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 ) AS A, " +
+                "( SELECT 0 AS u UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 ) AS B " +
+                ") AS C WHERE C.`daynum` < 7 ORDER BY date " +
+
+") AS `dt` ON `dt`.`date` = DATE(`bd`.`start_time`) GROUP BY `dt`.`date`;"
+                , [bs_complete, uObj.user_id, bs_complete, uObj.user_id, bs_complete, uObj.user_id ], (err, result) => {
 
                     if(err) {
                         helper.ThrowHtmlError(err, res);
@@ -1100,8 +1119,10 @@ module.exports.controller = (app, io, socket_list) => {
                                 'total_amt': wTotalAmt,
                                 'cash_amt': wCashAmt,
                                 'online_amt': wOnlineAmt,
-                                'list': result[1]
-                            }
+                                'list': result[1],
+                                'chart': result[2],
+                            },
+                            
                         }
                     })
 

@@ -74,13 +74,14 @@ module.exports.controller = (app, io, socket_list) => {
 
         checkAccessToken(req.headers, res, (uObj) => {
             helper.CheckParameterValid(res, reqObj, ["user_car_id"], () => {
-                db.query('SELECT IFNULL(`select_service_id`, "" ) AS `select_service_id` FROM `user_detail` WHERE `user_id` != ?', [uObj.user_id], (err, result) => {
+                db.query('SELECT IFNULL(`select_service_id`, "" ) AS `select_service_id` FROM `user_detail` WHERE `user_id` = ?', [uObj.user_id], (err, result) => {
                     if (err) {
                         helper.ThrowHtmlError(err, res);
                         return
                     }
 
                     if (result.length > 0) {
+                        helper.Dlog(result);
                         if (result[0].select_service_id != "") {
                             db.query("SELECT `zwd`.`zone_doc_id`, `zwd`.`service_id`, `zwd`.`personal_doc`, `zwd`.`car_doc`, `sd`.`service_name`, `sd`.`color` FROM `zone_document` AS `zwd`" +
                                 "INNER JOIN`user_detail` AS`ud` ON`ud`.`zone_id` = `zwd`.`zone_id` AND`ud`.`user_id` = ? " +
@@ -120,13 +121,13 @@ module.exports.controller = (app, io, socket_list) => {
 
                                             var sql_doc = "SELECT `doc_id`, `name`, `type`, `status`, `create_date`, `modify_date` FROM `document` WHERE `status` = 1 AND `doc_id` IN (" + doc_id + "); " +
                                                 'SELECT  `uc`.`user_car_id`, `cs`.`series_name`, `cm`.`model_name`, `cb`.`brand_name`, `uc`.`car_number`, `uc`.`car_image` FROM `user_cars` AS `uc` ' +
-                                                'INNER JOIN `car_series` AS `cs` ON  `uc`.`service_id` = `cs`.`service_id` ' +
-                                                'INNER JOIN `car_model` AS `cm` ON  `cm`.`model_id` = `cm`.`model_id` ' +
+                                                'INNER JOIN `car_series` AS `cs` ON  `uc`.`series_id` = `cs`.`series_id` ' +
+                                                'INNER JOIN `car_model` AS `cm` ON  `cs`.`model_id` = `cm`.`model_id` ' +
                                                 'INNER JOIN `car_brand` AS `cb` ON `cb`.`brand_id` = `cm`.`brand_id`  ' +
-                                                "WHERE `uc`.`user_id AND `uc`.`status` != 2 AND `ucd`.`user_car_id` = ?";
+                                                "WHERE `uc`.`user_id` = ? AND `uc`.`status` != 2 ";
 
                                             helper.Dlog(sql_doc);
-                                            db.query(sql_doc, [uObj.user_id, reqObj.user_car_id], (err, docResult) => {
+                                            db.query(sql_doc, [uObj.user_id], (err, docResult) => {
 
                                                 if (err) {
                                                     helper.ThrowHtmlError(err);
@@ -134,6 +135,8 @@ module.exports.controller = (app, io, socket_list) => {
                                                 }
 
                                                 serviceDetail.cars_list = []
+
+                                                helper.Dlog(docResult[1]);
 
                                                 docResult[1].forEach((carDetail, index) => {
 
@@ -147,10 +150,10 @@ module.exports.controller = (app, io, socket_list) => {
                                                     var sqlCarDoc = 'SELECT `zwdl`.`zone_link_id`, `zwdl`.`driver_doc_id`, `zwdl`.`doc_status`, `zwdl`.`linked_date`, `dd`.`doc_id`, IFNULL( `dd`.`doc_image`, "" ) AS `doc_image`, `dd`.`expiry_date`, `dd`.`created_date`, `dd`.`status`, `d`.`type`, `d`.`name` AS `doc_name`  FROM `zone_wise_doc_link` AS `zwdl` ' +
                                                         'INNER JOIN `zone_document` AS `zwd` ON`zwd`.`zone_doc_id` = `zwdl`.`zone_doc_id` ' +
                                                         'INNER JOIN `driver_document` AS `dd` ON`dd`.`driver_doc_id` = `zwdl`.`driver_doc_id` AND`dd`.`status` != 1 ' +
-                                                        'INNER JOIN `document` AS `d` ON`zwdl`.`doc_id` = `d`.`doc_id` ' +
-                                                        'WHERE`d`.`user_id` = ? AND`zwdl`.`user_car_id` = ? AND`zwd`.`zone_doc_id` = ? AND`zwdl`.`doc_status` != 1' ;
+                                                        'INNER JOIN `document` AS `d` ON `dd`.`doc_id` = `d`.`doc_id` ' +
+                                                        'WHERE `dd`.`user_id` = ? AND`zwdl`.`user_car_id` = ? AND`zwd`.`zone_doc_id` = ? AND`zwdl`.`doc_status` != 1';
 
-                                                    db.query(sqlCarDoc, [uObj.user_id, carDetail.user_car_id, serviceDetail.zone_doc_id ], (err, carDoc) => {
+                                                    db.query(sqlCarDoc, [uObj.user_id, carDetail.user_car_id, serviceDetail.zone_doc_id], (err, carDoc) => {
                                                         if (err) {
                                                             helper.ThrowHtmlError(err);
                                                             return;
@@ -160,7 +163,7 @@ module.exports.controller = (app, io, socket_list) => {
                                                             var isSet = false;
                                                             for (let j = 0; j < carDoc.length; j++) {
                                                                 if (docResult[0][i].doc_id == carDoc[j].doc_id) {
-                                                                    carDetail.doc_list.push(carDoc[j] )
+                                                                    carDetail.doc_list.push(carDoc[j])
                                                                     isSet = true;
                                                                 }
                                                             }
@@ -173,10 +176,12 @@ module.exports.controller = (app, io, socket_list) => {
                                                                 docResult[0][i].doc_image = "";
                                                                 carDetail.doc_list.push(docResult[0][i])
                                                             }
-                                                            
+
                                                         }
 
-                                                        if(isServiceLast && is_car_doc_last) {
+                                                        if (isServiceLast && is_car_doc_last) {
+
+                                                            console.log(payloadData)
                                                             res.json({ "status": "1", "payload": payloadData })
                                                         }
                                                     })
@@ -203,6 +208,42 @@ module.exports.controller = (app, io, socket_list) => {
             })
         }, "2")
     })
+
+    app.post('/api/personal_document_list', (req, res) => {
+        helper.Dlog( req.body );
+        var reqObj = req.body;
+
+        checkAccessToken(req.headers, res, (uObj) => {
+            db.query( "SELECT `zl`.`zone_name`, `zl`.`zone_id`, `zld`.`zone_doc_id`, `zld`.`service_id`, `sd`.`service_name`, `zld`.`personal_doc`, `d`.`name`, `d`.`type`, `dd`.`doc_image`, `dd`.`expiry_date`, `dd`.`status`, `dd`.`created_date`, `dd`.`driver_doc_id` FROM `user_detail` AS `ud` "+ 
+            "INNER JOIN `zone_list` AS `zl` ON `zl`.`zone_id` = `ud`.`zone_id` AND `zl`.`status` = 1 AND `ud`.`user_id` = ? "+
+            "INNER JOIN `zone_document` AS `zld` ON `zld`.`zone_id` = `zl`.`zone_id` AND FIND_IN_SET( `zld`.`service_id`, `ud`.`select_service_id` ) > 0 AND `zld`.`status` = 1 "+
+            "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `zld`.`service_id` AND `sd`.`status` = 1 "+
+            "INNER JOIN `document` AS `d` ON FIND_IN_SET( `d`.`doc_id`, `zld`.`personal_doc` ) > 0 AND `d`.`status` = 1 "+
+            "LEFT JOIN `driver_document` AS `dd` ON `dd`.`doc_id` = `d`.`doc_id` AND `dd`.`user_id` = `ud`.`user_id` AND `dd`.`status` != 1;", [ uObj.user_id ], (err, result) => {
+
+                if(err) {
+                    helper.ThrowHtmlError(err, res);
+                    return
+                }
+
+                if(result.length > 0) {
+                    res.json({
+                        'status':'1',
+                        'payload': result
+                    })
+                }else{
+                    res.json({
+                        'status':"0",
+                        "message":"Please select any one zone & any one provide service type"
+                    })
+                }
+
+            } )
+        })
+
+    } )
+
+
 
     //Admin Api
     app.post('/api/admin/add_document', (req, res) => {
@@ -393,7 +434,7 @@ function documentUpload(doc_id, user_id, expriry_date, image, driver_doc_id, cal
 function checkAccessToken(helperObj, res, callback, requireType = "") {
     helper.Dlog(helperObj.access_token)
     helper.CheckParameterValid(res, helperObj, ["access_token"], () => {
-        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  `image`, `status` FROM `user_detail` WHERE  `auth_token` = ? AND (`status` = ? OR `status` = ?) ', [helperObj.access_token, "1","2"], (err, result) => {
+        db.query('SELECT `user_id`, `name`, `email`, `gender`, `mobile`, `mobile_code`, `auth_token`,  `user_type`, `is_block`,  `image`, `status` FROM `user_detail` WHERE  `auth_token` = ? AND (`status` = ? OR `status` = ?) ', [helperObj.access_token, "1", "2"], (err, result) => {
 
             if (err) {
                 helper.ThrowHtmlError(err);

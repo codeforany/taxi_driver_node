@@ -221,6 +221,7 @@ module.exports.controller = (app, io, socket_list) => {
         var reqObj = req.body;
 
         checkAccessToken(req.headers, res, (uObj) => {
+
             db.query("SELECT `zl`.`zone_name`, `zl`.`zone_id`, `zld`.`zone_doc_id`, `zld`.`service_id`, `sd`.`service_name`, `zld`.`personal_doc`, `d`.`name`, `d`.`type`, `d`.`doc_id`, `dd`.`doc_image`, `dd`.`expiry_date`, `dd`.`status`, `dd`.`created_date`, `dd`.`driver_doc_id` FROM `user_detail` AS `ud` " +
                 "INNER JOIN `zone_list` AS `zl` ON `zl`.`zone_id` = `ud`.`zone_id` AND `zl`.`status` = 1 AND `ud`.`user_id` = ? " +
                 "INNER JOIN `zone_document` AS `zld` ON `zld`.`zone_id` = `zl`.`zone_id` AND FIND_IN_SET( `zld`.`service_id`, `ud`.`select_service_id` ) > 0 AND `zld`.`status` = 1 " +
@@ -248,9 +249,49 @@ module.exports.controller = (app, io, socket_list) => {
                 })
         })
 
+
     })
 
+    app.post('/api/car_document_list', ( req, res) => {
 
+        helper.Dlog(req.body);
+        var reqObj = req.body
+        checkAccessToken(req.headers, res, (uObj) => {
+            helper.CheckParameterValid(res, reqObj, ["user_car_id"], () => {
+                db.query("SELECT `zl`.`zone_name`, `zl`.`zone_id`, `zld`.`zone_doc_id`, `zld`.`service_id`, `sd`.`service_name`, `zld`.`personal_doc`, `d`.`name`, `d`.`type`, `d`.`doc_id`, `dd`.`doc_image`, `dd`.`expiry_date`, `dd`.`status`, `dd`.`created_date`, `dd`.`driver_doc_id`, `zwdl`.`zone_link_id`, `zwdl`.`doc_status` FROM `user_detail` AS `ud`" +
+                "INNER JOIN `zone_list` AS `zl` ON `zl`.`zone_id` = `ud`.`zone_id` AND `zl`.`status` = 1 AND `ud`.`user_id` = ? " +
+                "INNER JOIN `zone_document` AS `zld` ON `zld`.`zone_id` = `zl`.`zone_id` AND FIND_IN_SET ( `zld`.`service_id`, `ud`.`select_service_id` ) > 0 AND `zld`.`status` = 1 " +
+                "INNER JOIN `service_detail` AS `sd` ON `sd`.`service_id` = `zld`.`service_id` AND `sd`.`status` = 1 " +
+                "INNER JOIN `document` AS `d` ON FIND_IN_SET(`d`.`doc_id`, `zld`.`car_doc` ) > 0 AND `d`.`status` = 1 " +
+                "LEFT JOIN `zone_wise_doc_link` AS `zwdl` ON `zwdl`.`zone_doc_id` = `zld`.`zone_doc_id` AND `zwdl`.`user_car_id` = ? AND `zwdl`.`doc_status` != 1 " +
+                "LEFT JOIN `driver_document` AS `dd` ON `dd`.`driver_doc_id` = `zwdl`.`driver_doc_id` AND `dd`.`user_id` = `ud`.`user_id` AND `dd`.`status` != 1; ", [
+                    uObj.user_id,
+                    reqObj.user_car_id
+                ], (err, result) => {
+
+                    if(err) {
+                        helper.ThrowHtmlError(err, res);
+                        return
+                    }
+
+                    if(result.length > 0) {
+                        res.json({
+                            'status':'1',
+                            'payload': result
+                        })
+                    }else{
+                        res.json({
+                            'status':"0",
+                            "message":"Please select any one zone & any one provide service type"
+                        })
+                    }
+
+                } )
+            })
+        })
+
+    })
+  
 
     //Admin Api
     app.post('/api/admin/add_document', (req, res) => {

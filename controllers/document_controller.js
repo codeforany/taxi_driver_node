@@ -51,7 +51,7 @@ module.exports.controller = (app, io, socket_list) => {
                                 if (reqObj["user_car_id"][0] == "") {
                                     res.json({ "status": "1", "message": msg_doc_upload })
                                 } else {
-                                    db.query("INSERT INTO `zone_wise_doc_link`( `zone_doc_id`, `driver_doc_id`, `user_car_id` `linked_date`) VALUES (?,?,?, NOW()) ", [reqObj.zone_doc_id[0], driver_doc_id, reqObj.user_car_id[0]], (err, result) => {
+                                    db.query("INSERT INTO `zone_wise_doc_link`(`zone_doc_id`,`driver_doc_id`,`user_car_id`, `linked_date`) VALUES (?,?,?, NOW()) ", [reqObj.zone_doc_id[0], result, reqObj.user_car_id[0]], (err, result) => {
                                         if (err) {
                                             helper.ThrowHtmlError(err, res);
                                             return

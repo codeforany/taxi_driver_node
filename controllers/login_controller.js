@@ -684,6 +684,66 @@ module.exports.controller = (app, io, socket_list) => {
 
     })
 
+    app.post('/api/change_password', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj = req.body
+        checkAccessToken( req.headers,  res, (uObj) => {
+            helper.CheckParameterValid(res, reqObj, ["old_password", "new_password"], ()=> {
+                db.query("UPDATE `user_detail` SET `password` = ? WHERE `user_id` = ? AND `password` = ? ",[  reqObj.new_password, uObj.user_id, reqObj.old_password ], (err, result) => {
+
+                    if(err) {
+                        helper.ThrowHtmlError(err, res)
+                        return
+                    }
+
+                    if(result.affectedRows > 0) {
+                        res.json({
+                            'status': '1',
+                            'message': 'password change successfully'
+                        })
+                    }else{
+                        res.json({
+                            'status':'0',
+                            'message':'invalid password'
+                        })
+                    }
+
+                } )
+            } )
+
+        } )
+    } )
+
+    app.post('/api/contact_us', (req, res) => {
+        helper.Dlog(req.body)
+        var reqObj =  req.body
+        helper.CheckParameterValid(res, reqObj, ["name", "email", "subject", "message"], () => {
+
+            db.query("INSERT INTO `contact_us_detail` (`name`, `email`, `subject`, `message`) VALUES (?,?,?, ?) ", [ reqObj.name, reqObj.email, reqObj.subject, reqObj.message ], (err, result) => {
+
+                if(err) {
+                    helper.ThrowHtmlError(err, res)
+                    return;
+                }
+
+                if(result) {
+                    res.json({
+                        'status':'1',
+                        'message':'message send successfully'
+                    })
+                }else{
+                    res.json({
+                        'status': '0',
+                        'message': 'message send fail'
+                    })
+                }
+
+            } )
+
+        })
+
+    } )
+
     app.post('/api/admin/user_list', (req, res) => {
         helper.Dlog(req.body)
         checkAccessToken(req.headers, res, (uObj) => {
